@@ -10,49 +10,46 @@ import {
   ScrollView,
   StatusBar,
   useColorScheme,
+  TouchableOpacity,
+  FlatList,
 } from 'react-native';
 import { Colors, Header } from 'react-native/Libraries/NewAppScreen';
 import {
-  multiply,
   SunmiConnect,
   SunmiPrintImage,
   SunmiSetBTPrinter,
+  EscPosImageWithTCPConnection,
+  startNetworkDiscovery,
+  stopNetworkDiscovery,
 } from 'sunmi-external-printer';
-
-type SectionProps = React.PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({ children, title }: SectionProps): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}
-      >
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}
-      >
-        {children}
-      </Text>
-    </View>
-  );
-}
-
+import { DeviceEventEmitter } from 'react-native';
+import { useState } from 'react';
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
+  const [ipAddress, setIpAddress] = useState<string>('');
+  const [port, setPort] = useState<string>('');
+  const [printerName, setPrinterName] = useState<string>('');
+  const [devices, setListofDevices] = useState<ItemData[]>([]);
+  const renderItem = ({ item }: { item: ItemData }) => {
+    const backgroundColor =
+      item.printerIPAddress === ipAddress ? '#00008B' : 'blue';
+    return (
+      <Item
+        item={item}
+        onPress={async () => {
+          setIpAddress(item.printerIPAddress);
+          setPort(item.printerPort);
+          setPrinterName(item.printerName);
+          const Print = await stopNetworkDiscovery();
+          DeviceEventEmitter.removeAllListeners();
+          setListofDevices([]);
+          console.log(Print);
+        }}
+        backgroundColor={backgroundColor}
+        textColor={'white'}
+      />
+    );
+  };
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -80,26 +77,107 @@ function App(): JSX.Element {
               const BTprinterStatus = await SunmiSetBTPrinter();
               console.log('This is the printer mac Addres ', BTprinterStatus);
             }}
-          ></Button>
+          />
           <Button
             title="Connect Bluetooth Printer"
             onPress={async () => {
               await SunmiConnect();
             }}
-          ></Button>
+          />
           <Button
             title="Print"
             onPress={async () => {
               const Print = await SunmiPrintImage(base64Image);
               console.log(Print);
             }}
-          ></Button>
+          />
+          <Button
+            title="Print with TCP"
+            onPress={async () => {
+              const Print = await EscPosImageWithTCPConnection(
+                base64Image,
+                ipAddress,
+                port,
+                80
+              );
+              console.log(Print);
+            }}
+          />
+          <Button
+            title="Start Network Discovery"
+            onPress={async () => {
+              const networkDiscovery = await startNetworkDiscovery();
+              DeviceEventEmitter.addListener('OnPrinterFound', (event) => {
+                const device: ItemData = {
+                  printerName: event.printername,
+                  printerIPAddress: event.ip,
+                  printerPort: event.port,
+                };
+
+                setListofDevices([...devices, device]);
+              });
+              console.log(networkDiscovery);
+            }}
+          />
+          <Button
+            title="Stop Discovery"
+            onPress={async () => {
+              const Print = await stopNetworkDiscovery();
+              DeviceEventEmitter.removeAllListeners();
+              setListofDevices([]);
+              console.log(Print);
+            }}
+          />
+          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
+            Current Device:{printerName}
+          </Text>
+          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
+            IPAddress:{ipAddress}
+          </Text>
+          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
+            Port:{port}
+          </Text>
+          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
+            Discover Network List
+          </Text>
         </View>
       </ScrollView>
+      <View style={{ borderWidth: 5, height: 300 }}>
+        <FlatList
+          data={devices}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.printerIPAddress}
+          extraData={ipAddress}
+        />
+      </View>
     </SafeAreaView>
   );
 }
+type ItemData = {
+  printerName: string;
+  printerIPAddress: string;
+  printerPort: string;
+};
 
+type ItemProps = {
+  item: ItemData;
+  onPress: () => void;
+  backgroundColor: string;
+  textColor: string;
+};
+
+const Item = ({ item, onPress, backgroundColor, textColor }: ItemProps) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[styles.item, { backgroundColor }]}
+  >
+    <Text style={[styles.title, { color: textColor }]}>
+      {item.printerIPAddress}
+    </Text>
+    <Text style={[styles.title, { color: textColor }]}>{item.printerName}</Text>
+    <Text style={[styles.title, { color: textColor }]}>{item.printerPort}</Text>
+  </TouchableOpacity>
+);
 const styles = StyleSheet.create({
   sectionContainer: {
     marginTop: 32,
@@ -116,6 +194,18 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
+  },
+  item: {
+    flex: 1,
+    padding: 20,
+    marginVertical: 8,
+    marginHorizontal: 16,
+  },
+  title: {
+    fontSize: 10,
+  },
+  devicesContainer: {
+    height: '300',
   },
 });
 

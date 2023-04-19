@@ -62,6 +62,7 @@ android {
 }
 
 repositories {
+  maven { url 'https://jitpack.io' }
   mavenCentral()
   google()
 }
@@ -75,6 +76,8 @@ dependencies {
   implementation "com.facebook.react:react-native:+"
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation 'com.sunmi:external-printerlibrary:1.0.9'
+  implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.2.0'
+
 
 }
 

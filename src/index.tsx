@@ -21,6 +21,7 @@ const SunmiExternalPrinterReactNative =
 export function multiply(a: number, b: number): Promise<number> {
   return SunmiExternalPrinterReactNative.multiply(a, b);
 }
+
 export const SunmiSetBTPrinter = async () => {
   try {
     return await SunmiExternalPrinterReactNative.setBTPrinter();
@@ -39,6 +40,39 @@ export const SunmiConnect = async () => {
 export const SunmiPrintImage = async (base64Image: string) => {
   try {
     return await SunmiExternalPrinterReactNative.printImage(base64Image);
+  } catch (error) {
+    return error;
+  }
+};
+
+export const EscPosImageWithTCPConnection = async (
+  base64Image: string,
+  ipAddress: string,
+  port: string,
+  paperWidth: Number
+) => {
+  try {
+    return await SunmiExternalPrinterReactNative.printImageWithTCP(
+      base64Image,
+      ipAddress,
+      port,
+      paperWidth
+    );
+  } catch (error) {
+    return error;
+  }
+};
+export const startNetworkDiscovery = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.startDiscovery();
+  } catch (error) {
+    return error;
+  }
+};
+
+export const stopNetworkDiscovery = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.stopDiscovery();
   } catch (error) {
     return error;
   }
