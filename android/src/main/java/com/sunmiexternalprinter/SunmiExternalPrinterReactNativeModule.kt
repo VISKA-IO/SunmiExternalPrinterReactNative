@@ -179,26 +179,22 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
 
   @ReactMethod
-  fun printImageWithTCP(base64Image:String,ipAddress:String,port:String,paperWidth:Int,promise: Promise) {
+  fun printImageWithTCP(base64Image:String,ipAddress:String,port:String,promise: Promise) {
     this.promise=promise
 
     Thread {
       try {
-        val targetWidth= floor(paperWidth/25.4*203).toInt() -35
-        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+     val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,targetWidth, Math.round(
-          bitmap.height.toFloat() * targetWidth.toFloat() / bitmap.width.toFloat()
-        ), true)
-
-        val printerConnection=TcpConnection(ipAddress,  port.toInt(),10 )
-        val printer=EscPosPrinterCommands(printerConnection)
-
-        printer.connect()
-        printer.reset()
-        printer.printImage(EscPosPrinterCommands.bitmapToBytes(scaledBitmap))
-        printerConnection.write(byteArrayOf(29, 86, 65,1))// full cut
-        printerConnection.send()
+        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+        val  stream = TcpIpOutputStream(ipAddress,port.toInt())
+        val escpos= EscPos(stream)
+        val algorithm= BitonalOrderedDither()
+        val imageWrapper = RasterBitImageWrapper()
+        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+        escpos.write(imageWrapper, escposImage)
+        escpos.feed(5).cut(EscPos.CutMode.FULL)
+        promise.resolve("Print Successfully")
 
 
         promise.resolve("Print Completed")

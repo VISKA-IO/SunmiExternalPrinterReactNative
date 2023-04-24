@@ -55,8 +55,7 @@ export const EscPosImageWithTCPConnection = async (
     return await SunmiExternalPrinterReactNative.printImageWithTCP(
       base64Image,
       ipAddress,
-      port,
-      paperWidth
+      port
     );
   } catch (error) {
     return error;
