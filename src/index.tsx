@@ -77,3 +77,19 @@ export const stopNetworkDiscovery = async () => {
     return error;
   }
 };
+
+export const printImageWithTCP2 = async (
+  base64Image: string,
+  ipAddress: string,
+  port: string
+) => {
+  try {
+    return await SunmiExternalPrinterReactNative.printImageWithTCP2(
+      base64Image,
+      ipAddress,
+      port
+    );
+  } catch (error) {
+    return error;
+  }
+};

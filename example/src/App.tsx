@@ -21,6 +21,7 @@ import {
   EscPosImageWithTCPConnection,
   startNetworkDiscovery,
   stopNetworkDiscovery,
+  printImageWithTCP2,
 } from 'sunmi-external-printer';
 import { DeviceEventEmitter } from 'react-native';
 import { useState } from 'react';
@@ -99,6 +100,17 @@ function App(): JSX.Element {
                 ipAddress,
                 port,
                 80
+              );
+              console.log(Print);
+            }}
+          />
+          <Button
+            title="Print with TCP2"
+            onPress={async () => {
+              const Print = await printImageWithTCP2(
+                base64Image,
+                ipAddress,
+                port
               );
               console.log(Print);
             }}

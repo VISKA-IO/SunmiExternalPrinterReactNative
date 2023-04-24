@@ -7,12 +7,19 @@ import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.util.Base64
 import com.dantsu.escposprinter.EscPosPrinterCommands
+import com.dantsu.escposprinter.connection.DeviceConnection
 import com.dantsu.escposprinter.connection.tcp.TcpConnection
+import com.dantsu.escposprinter.exceptions.EscPosConnectionException
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.sunmi.externalprinterlibrary.api.ConnectCallback
 import com.sunmi.externalprinterlibrary.api.SunmiPrinter
 import com.sunmi.externalprinterlibrary.api.SunmiPrinterApi
+import com.github.anastaciocintra.escpos.EscPos
+import com.github.anastaciocintra.escpos.image.BitonalOrderedDither
+import com.github.anastaciocintra.escpos.image.EscPosImage
+import com.github.anastaciocintra.escpos.image.RasterBitImageWrapper
+import com.github.anastaciocintra.output.TcpIpOutputStream
 import java.net.InetAddress
 import kotlin.math.floor
 
@@ -152,6 +159,25 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
     }
   }
+  fun byteMerger(byte_1: ByteArray, byte_2: ByteArray): ByteArray? {
+    val byte_3 = ByteArray(byte_1.size + byte_2.size)
+    System.arraycopy(byte_1, 0, byte_3, 0, byte_1.size)
+    System.arraycopy(byte_2, 0, byte_3, byte_1.size, byte_2.size)
+    return byte_3
+  }
+
+  fun printImage(printerConnection: DeviceConnection,image: ByteArray){
+      val bytesToPrint = arrayOf(
+          image)
+      val var4 = bytesToPrint.size
+      for (var5 in 0 until var4) {
+        val bytes = bytesToPrint[var5]
+        printerConnection.write(bytes)
+        printerConnection.send()
+      }
+    }
+
+
   @ReactMethod
   fun printImageWithTCP(base64Image:String,ipAddress:String,port:String,paperWidth:Int,promise: Promise) {
     this.promise=promise
@@ -165,14 +191,15 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           bitmap.height.toFloat() * targetWidth.toFloat() / bitmap.width.toFloat()
         ), true)
 
+        val printerConnection=TcpConnection(ipAddress,  port.toInt(),10 )
+        val printer=EscPosPrinterCommands(printerConnection)
 
-        val printer=EscPosPrinterCommands(TcpConnection(ipAddress,  port.toInt(),10 ))
-        val printerConnection=TcpConnection("100.96.109.236",  9100,10 )
         printer.connect()
         printer.reset()
         printer.printImage(EscPosPrinterCommands.bitmapToBytes(scaledBitmap))
-        printer.feedPaper(50)
-        printer.cutPaper()
+        printerConnection.write(byteArrayOf(29, 86, 65,1))// full cut
+        printerConnection.send()
+
 
         promise.resolve("Print Completed")
       } catch (e: java.lang.Exception) {
@@ -214,8 +241,39 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
   }
 
+  @ReactMethod fun printImageWithTCP2(base64Image:String,ipAddress:String,port:String,promise: Promise){
+    this.promise=promise
+
+    Thread {
+      try {
+        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+        val  stream = TcpIpOutputStream(ipAddress,port.toInt())
+        val escpos= EscPos(stream)
+        val algorithm= BitonalOrderedDither()
+        val imageWrapper = RasterBitImageWrapper()
+        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+        escpos.write(imageWrapper, escposImage)
+        escpos.feed(5).cut(EscPos.CutMode.FULL)
+        promise.resolve("Print Successfully")
+
+
+
+      } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+        promise.reject("Error",e.toString())
+      }
+    }.start()
+
+
+  }
+
 
   companion object {
     const val NAME = "SunmiExternalPrinterReactNative"
   }
+
 }
+
+
