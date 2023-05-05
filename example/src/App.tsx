@@ -15,9 +15,6 @@ import {
 } from 'react-native';
 import { Colors, Header } from 'react-native/Libraries/NewAppScreen';
 import {
-  SunmiConnect,
-  SunmiPrintImage,
-  SunmiSetBTPrinter,
   EscPosImageWithTCPConnection,
   startNetworkDiscovery,
   stopNetworkDiscovery,
@@ -73,33 +70,12 @@ function App(): JSX.Element {
           }}
         >
           <Button
-            title="Find Bluetooth Printer"
-            onPress={async () => {
-              const BTprinterStatus = await SunmiSetBTPrinter();
-              console.log('This is the printer mac Addres ', BTprinterStatus);
-            }}
-          />
-          <Button
-            title="Connect Bluetooth Printer"
-            onPress={async () => {
-              await SunmiConnect();
-            }}
-          />
-          <Button
-            title="Print"
-            onPress={async () => {
-              const Print = await SunmiPrintImage(base64Image);
-              console.log(Print);
-            }}
-          />
-          <Button
             title="Print with TCP"
             onPress={async () => {
               const Print = await EscPosImageWithTCPConnection(
                 base64Image,
                 ipAddress,
-                port,
-                80
+                port
               );
               console.log(Print);
             }}
