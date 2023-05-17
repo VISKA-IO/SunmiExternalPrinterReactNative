@@ -122,9 +122,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   @ReactMethod
   fun startDiscovery(promise:Promise){
     try {
-      nsdManager = reactApplicationContext.getSystemService(Context.NSD_SERVICE) as NsdManager
+      nsdManager = reactContext.getSystemService(Context.NSD_SERVICE) as NsdManager
+      nsdManager?.stopServiceDiscovery(discoveryListener);
       nsdManager?.discoverServices(
-        "_ippovertcp._tcp.",
+        "_afpovertcp._tcp",
         1,
         discoveryListener
       )
