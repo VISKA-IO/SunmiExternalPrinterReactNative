@@ -95,15 +95,15 @@ function App(): JSX.Element {
             title="Start Network Discovery"
             onPress={async () => {
               const networkDiscovery = await startNetworkDiscovery();
-              DeviceEventEmitter.addListener('OnPrinterFound', (event) => {
-                const device: ItemData = {
-                  printerName: event.printername,
-                  printerIPAddress: event.ip,
-                  printerPort: event.port,
-                };
+              // DeviceEventEmitter.addListener('OnPrinterFound', (event) => {
+              //   const device: ItemData = {
+              //     printerName: event.printername,
+              //     printerIPAddress: event.ip,
+              //     printerPort: event.port,
+              //   };
 
-                setListofDevices([...devices, device]);
-              });
+              //   setListofDevices([...devices, device]);
+              // });
               console.log(networkDiscovery);
             }}
           />
