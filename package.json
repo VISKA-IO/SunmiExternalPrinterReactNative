@@ -1,6 +1,6 @@
 {
   "name": "sunmi-external-printer",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Printing Module for Printing Images with Sunmi in React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
