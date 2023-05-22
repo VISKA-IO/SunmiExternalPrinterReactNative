@@ -85,7 +85,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
 
     @ReactMethod
-    fun printImageWithTCP(base64Image:String,ipAddress:String,port:String,paperWidth:Int,promise: Promise) {
+    fun printImageWithTCP(base64Image:String,ipAddress:String,port:String,promise: Promise) {
         this.promise=promise
 
         Thread {
