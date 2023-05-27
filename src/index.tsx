@@ -22,7 +22,7 @@ export function multiply(a: number, b: number): Promise<number> {
   return SunmiExternalPrinterReactNative.multiply(a, b);
 }
 
-export const EscPosImageWithTCPConnectionRasterBitWrapper = async (
+export const EscPosImageWithTCPConnectionRasterBitImageWrapper = async (
   base64Image: string,
   ipAddress: string,
   port: string
@@ -53,7 +53,7 @@ export const stopNetworkDiscovery = async () => {
   }
 };
 
-export const EscPosImageWithTCPConnectionBitWrapper = async (
+export const EscPosImageWithTCPConnectionBitImageWrapper = async (
   base64Image: string,
   ipAddress: string,
   port: string
@@ -68,7 +68,7 @@ export const EscPosImageWithTCPConnectionBitWrapper = async (
     return error;
   }
 };
-export const EscPosImageWithTCPGraphicsBitWrapper = async (
+export const EscPosImageWithTCPConnectionGraphicsImageWrapper = async (
   base64Image: string,
   ipAddress: string,
   port: string

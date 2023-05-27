@@ -15,10 +15,11 @@ import {
 } from 'react-native';
 import { Colors, Header } from 'react-native/Libraries/NewAppScreen';
 import {
-  EscPosImageWithTCPConnection,
+  EscPosImageWithTCPConnectionBitImageWrapper,
+  EscPosImageWithTCPConnectionGraphicsImageWrapper,
+  EscPosImageWithTCPConnectionRasterBitImageWrapper,
   startNetworkDiscovery,
   stopNetworkDiscovery,
-  printImageWithTCP2,
 } from 'sunmi-external-printer';
 import { DeviceEventEmitter } from 'react-native';
 import { useState } from 'react';
@@ -70,9 +71,21 @@ function App(): JSX.Element {
           }}
         >
           <Button
-            title="Print with TCP"
+            title="Print with Graphic Image Wrapper"
             onPress={async () => {
-              const Print = await EscPosImageWithTCPConnection(
+              const Print =
+                await EscPosImageWithTCPConnectionGraphicsImageWrapper(
+                  base64Image,
+                  ipAddress,
+                  port
+                );
+              console.log(Print);
+            }}
+          />
+          <Button
+            title="Print with Bit Wrapper"
+            onPress={async () => {
+              const Print = await EscPosImageWithTCPConnectionBitImageWrapper(
                 base64Image,
                 ipAddress,
                 port
@@ -81,13 +94,14 @@ function App(): JSX.Element {
             }}
           />
           <Button
-            title="Print with TCP2"
+            title="Print with Raster Bit Wrapper "
             onPress={async () => {
-              const Print = await printImageWithTCP2(
-                base64Image,
-                ipAddress,
-                port
-              );
+              const Print =
+                await EscPosImageWithTCPConnectionRasterBitImageWrapper(
+                  base64Image,
+                  ipAddress,
+                  port
+                );
               console.log(Print);
             }}
           />
