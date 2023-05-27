@@ -10,13 +10,14 @@ import android.util.Base64
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.github.anastaciocintra.escpos.EscPos
+import com.github.anastaciocintra.escpos.image.BitImageWrapper
 import com.github.anastaciocintra.escpos.image.BitonalOrderedDither
-import com.github.anastaciocintra.escpos.image.CoffeeImage
 import com.github.anastaciocintra.escpos.image.EscPosImage
+import com.github.anastaciocintra.escpos.image.GraphicsImageWrapper
 import com.github.anastaciocintra.escpos.image.RasterBitImageWrapper
 import com.github.anastaciocintra.output.TcpIpOutputStream
 import java.net.InetAddress
-import kotlin.math.floor
+
 
 class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
     private var promise: Promise? = null
@@ -85,7 +86,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
 
     @ReactMethod
-    fun printImageWithTCP(base64Image:String,ipAddress:String,port:String,promise: Promise) {
+    fun printImageWithTCPRasterBitImageWrapper(base64Image:String,ipAddress:String,port:String,promise: Promise) {
         this.promise=promise
 
         Thread {
@@ -110,6 +111,63 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         }.start()
 
 }
+  @ReactMethod
+  fun printImageWithTCPBitImageWrapper(base64Image:String,ipAddress:String,port:String,promise: Promise){
+    this.promise=promise
+
+    Thread {
+      try {
+        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+        val  stream = TcpIpOutputStream(ipAddress,port.toInt())
+        val escpos= EscPos(stream)
+        val algorithm= BitonalOrderedDither()
+        val imageWrapper = BitImageWrapper()
+        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+        escpos.write(imageWrapper, escposImage)
+        escpos.cut(EscPos.CutMode.FULL)
+        promise.resolve("Print Successfully")
+
+
+
+      } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+        promise.reject("Error",e.toString())
+      }
+    }.start()
+
+
+  }
+  @ReactMethod
+  fun printImageWithGraphicsImageWrapper(base64Image:String,ipAddress:String,port:String,promise: Promise){
+    this.promise=promise
+
+    Thread {
+      try {
+        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+        val  stream = TcpIpOutputStream(ipAddress,port.toInt())
+        val escpos= EscPos(stream)
+        val algorithm= BitonalOrderedDither()
+        val imageWrapper = GraphicsImageWrapper()
+        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+        escpos.write(imageWrapper, escposImage)
+        escpos.cut(EscPos.CutMode.FULL)
+        promise.resolve("Print Successfully")
+
+
+
+      } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+        promise.reject("Error",e.toString())
+      }
+    }.start()
+
+
+  }
+
     @ReactMethod
     fun startDiscovery(promise:Promise){
         try {
@@ -141,34 +199,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         }
     }
 
-    @ReactMethod
-    fun printImageWithTCP2(base64Image:String,ipAddress:String,port:String,promise: Promise){
-        this.promise=promise
 
-        Thread {
-            try {
-                val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
-                val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-                val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
-                val  stream = TcpIpOutputStream(ipAddress,port.toInt())
-                val escpos= EscPos(stream)
-                val algorithm= BitonalOrderedDither()
-                val imageWrapper = RasterBitImageWrapper()
-                val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-                escpos.write(imageWrapper, escposImage)
-                escpos.cut(EscPos.CutMode.FULL)
-                promise.resolve("Print Successfully")
-
-
-
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                promise.reject("Error",e.toString())
-            }
-        }.start()
-
-
-    }
   companion object {
     const val NAME = "SunmiExternalPrinterReactNative"
   }
