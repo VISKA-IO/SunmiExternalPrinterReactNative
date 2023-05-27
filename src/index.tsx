@@ -22,13 +22,13 @@ export function multiply(a: number, b: number): Promise<number> {
   return SunmiExternalPrinterReactNative.multiply(a, b);
 }
 
-export const EscPosImageWithTCPConnection = async (
+export const EscPosImageWithTCPConnectionRasterBitWrapper = async (
   base64Image: string,
   ipAddress: string,
   port: string
 ) => {
   try {
-    return await SunmiExternalPrinterReactNative.printImageWithTCP(
+    return await SunmiExternalPrinterReactNative.printImageWithTCPRasterBitImageWrapper(
       base64Image,
       ipAddress,
       port
@@ -53,13 +53,28 @@ export const stopNetworkDiscovery = async () => {
   }
 };
 
-export const printImageWithTCP2 = async (
+export const EscPosImageWithTCPConnectionBitWrapper = async (
   base64Image: string,
   ipAddress: string,
   port: string
 ) => {
   try {
-    return await SunmiExternalPrinterReactNative.printImageWithTCP2(
+    return await SunmiExternalPrinterReactNative.printImageWithTCPBitImageWrapper(
+      base64Image,
+      ipAddress,
+      port
+    );
+  } catch (error) {
+    return error;
+  }
+};
+export const EscPosImageWithTCPGraphicsBitWrapper = async (
+  base64Image: string,
+  ipAddress: string,
+  port: string
+) => {
+  try {
+    return await SunmiExternalPrinterReactNative.printImageWithTCPGraphicsImageWrapper(
       base64Image,
       ipAddress,
       port
