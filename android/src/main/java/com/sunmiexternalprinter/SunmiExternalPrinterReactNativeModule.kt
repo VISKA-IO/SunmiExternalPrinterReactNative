@@ -10,11 +10,7 @@ import android.util.Base64
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.github.anastaciocintra.escpos.EscPos
-import com.github.anastaciocintra.escpos.image.BitImageWrapper
-import com.github.anastaciocintra.escpos.image.BitonalOrderedDither
-import com.github.anastaciocintra.escpos.image.EscPosImage
-import com.github.anastaciocintra.escpos.image.GraphicsImageWrapper
-import com.github.anastaciocintra.escpos.image.RasterBitImageWrapper
+import com.github.anastaciocintra.escpos.image.*
 import com.github.anastaciocintra.output.TcpIpOutputStream
 import java.net.InetAddress
 
@@ -99,11 +95,14 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                 val algorithm= BitonalOrderedDither()
                 val imageWrapper = RasterBitImageWrapper()
                 val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-                escpos.write(imageWrapper, escposImage)
-                escpos.feed(5).cut(EscPos.CutMode.FULL)
+                ImageHelper(scaledBitmap.width,scaledBitmap.height).write(
+                escpos,
+                CoffeeImageAndroidImpl(scaledBitmap),
+                imageWrapper,
+                BitonalThreshold()
+              )
+              escpos.feed(5).cut(EscPos.CutMode.FULL)
                 promise.resolve("Print Successfully")
-
-                promise.resolve("Print Completed")
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
                 promise.reject("Error",e.toString())
@@ -125,7 +124,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val algorithm= BitonalOrderedDither()
         val imageWrapper = BitImageWrapper()
         val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-        escpos.write(imageWrapper, escposImage)
+        ImageHelper(scaledBitmap.width,scaledBitmap.height).write(
+          escpos,
+          CoffeeImageAndroidImpl(scaledBitmap),
+          imageWrapper,
+          BitonalThreshold()
+        )
         escpos.cut(EscPos.CutMode.FULL)
         promise.resolve("Print Successfully")
 
@@ -153,11 +157,14 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val algorithm= BitonalOrderedDither()
         val imageWrapper = GraphicsImageWrapper()
         val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-        escpos.write(imageWrapper, escposImage)
+        ImageHelper(scaledBitmap.width,scaledBitmap.height).write(
+          escpos,
+          CoffeeImageAndroidImpl(scaledBitmap),
+          imageWrapper,
+          BitonalThreshold()
+        )
         escpos.cut(EscPos.CutMode.FULL)
         promise.resolve("Print Successfully")
-
-
 
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
