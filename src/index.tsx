@@ -68,6 +68,7 @@ export const EscPosImageWithTCPConnectionBitImageWrapper = async (
     return error;
   }
 };
+
 export const EscPosImageWithTCPConnectionGraphicsImageWrapper = async (
   base64Image: string,
   ipAddress: string,
@@ -79,6 +80,14 @@ export const EscPosImageWithTCPConnectionGraphicsImageWrapper = async (
       ipAddress,
       port
     );
+  } catch (error) {
+    return error;
+  }
+};
+
+export const convertHTMLtoBase64 = async (html: string) => {
+  try {
+    return await SunmiExternalPrinterReactNative.convertHTMLtoBase64(html);
   } catch (error) {
     return error;
   }

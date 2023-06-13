@@ -23,6 +23,7 @@ import {
 } from 'sunmi-external-printer';
 import { DeviceEventEmitter } from 'react-native';
 import { useState } from 'react';
+import { convertHTMLtoBase64 } from '../../src';
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [ipAddress, setIpAddress] = useState<string>('');
@@ -127,6 +128,45 @@ function App(): JSX.Element {
               const Print = await stopNetworkDiscovery();
               DeviceEventEmitter.removeAllListeners();
               setListofDevices([]);
+              console.log(Print);
+            }}
+          />
+          <Button
+            title="Convert HTMl to Image"
+            onPress={async () => {
+              const Print = await convertHTMLtoBase64(
+                '' +
+                  '<html>\n' +
+                  '<head>\n' +
+                  '<style>\n' +
+                  'body {\n' +
+                  '  background-color: lightblue;\n' +
+                  '}\n' +
+                  '\n' +
+                  'h1 {\n' +
+                  '  text-align: center;\n' +
+                  '}\n' +
+                  '\n' +
+                  'p {\n' +
+                  '  font-family: verdana;\n' +
+                  '  font-size: 20px;\n' +
+                  '}\n' +
+                  'p.korean {\n' +
+                  '  font-family: Single Day;\n' +
+                  '  font-size: 20px;\n' +
+                  '}\n' +
+                  '</style>\n' +
+                  '</head>' +
+                  '<body>' +
+                  '<h1>Hello, world.</h1>' +
+                  '<p>الصفحة الرئيسية \n' + // Arabiac
+                  '<br>你好，世界 \n' + // Chinese
+                  '<br>こんにちは世界 \n' + // Japanese
+                  '<br>Привет мир \n' + // Russian
+                  '<br>नमस्ते दुनिया \n' + //  Hindi
+                  '<p class="korean"><br>안녕하세요 세계</p>' + // if necessary, you can download and install on your environment the Single Day from fonts.google...
+                  '</body>'
+              );
               console.log(Print);
             }}
           />

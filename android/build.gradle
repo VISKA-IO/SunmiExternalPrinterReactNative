@@ -76,13 +76,14 @@ def kotlin_version = getExtOrDefault("kotlinVersion")
 
 dependencies {
   // For < 0.71, this will be from the local maven repo
-  // For > 0.71, this will be replaced by `com.facebook.react:react-android:$version` by react gradle plugin
+  // For > 0.71, this will be replaced by `com.facebook.reacft:react-android:$version` by react gradle plugin
   //noinspection GradleDynamicVersion
-  implementation 'com.facebook.react:react-android:+' // change to react-android:+ when debugging// change to react-native:+ when npm publish
+  implementation 'com.facebook.react:react-native:+' // change to react-android:+ when debugging// change to react-native:+ when npm publish
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.2.0'
   androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
   implementation 'com.github.anastaciocintra:escpos-coffee:4.1.0'
+  implementation 'com.izettle:html2bitmap:1.9'
 
 
 

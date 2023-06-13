@@ -12,6 +12,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.github.anastaciocintra.escpos.EscPos
 import com.github.anastaciocintra.escpos.image.*
 import com.github.anastaciocintra.output.TcpIpOutputStream
+import com.izettle.html2bitmap.Html2Bitmap
+import com.izettle.html2bitmap.content.WebViewContent
+import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 
 
@@ -80,7 +83,37 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     override fun getName(): String {
         return NAME
     }
+  @ReactMethod
+  fun convertHTMLtoBase64(htmlString:String, promise:Promise){
+    this.promise=promise
+    Thread {
+      try {
+        val bitmap: Bitmap? =
+          Html2Bitmap.Builder().setContext(reactApplicationContext.applicationContext)
+            .setContent(WebViewContent.html(htmlString))
+            .build().bitmap
+//        val resizedBitmap = Bitmap.createScaledBitmap(
+//          bitmap as Bitmap,
+//          631,
+//          bitmap.height,
+//          true
+//        )/// what works the best so far 80mm
+        val byteArrayOutputStream = ByteArrayOutputStream()
+        bitmap?.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+        val byteArray = byteArrayOutputStream.toByteArray()
+        val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
+        promise.resolve(base64String)
 
+      }catch(e: java.lang.Exception){
+        e.printStackTrace()
+        promise.reject("Error",e.toString())
+
+      }
+
+    }.start()
+
+
+  }
     @ReactMethod
     fun printImageWithTCPRasterBitImageWrapper(base64Image:String,ipAddress:String,port:String,promise: Promise) {
         this.promise=promise
