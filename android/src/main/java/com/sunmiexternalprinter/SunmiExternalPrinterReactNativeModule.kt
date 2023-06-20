@@ -84,13 +84,13 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         return NAME
     }
   @ReactMethod
-  fun convertHTMLtoBase64(htmlString:String, promise:Promise){
+  fun convertHTMLtoBase64(htmlString:String,width:Int, promise:Promise){
     this.promise=promise
     Thread {
       try {
         val bitmap: Bitmap? =
           Html2Bitmap.Builder().setContext(reactApplicationContext.applicationContext)
-            .setContent(WebViewContent.html(htmlString))
+            .setContent(WebViewContent.html(htmlString)).setBitmapWidth(width)
             .build().bitmap
 //        val resizedBitmap = Bitmap.createScaledBitmap(
 //          bitmap as Bitmap,

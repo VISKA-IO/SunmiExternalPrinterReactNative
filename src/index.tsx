@@ -85,9 +85,12 @@ export const EscPosImageWithTCPConnectionGraphicsImageWrapper = async (
   }
 };
 
-export const convertHTMLtoBase64 = async (html: string) => {
+export const convertHTMLtoBase64 = async (html: string, width: number) => {
   try {
-    return await SunmiExternalPrinterReactNative.convertHTMLtoBase64(html);
+    return await SunmiExternalPrinterReactNative.convertHTMLtoBase64(
+      html,
+      width
+    );
   } catch (error) {
     return error;
   }
