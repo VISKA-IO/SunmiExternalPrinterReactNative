@@ -122,7 +122,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             try {
                 val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
                 val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-                val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+                val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
                 val  stream = TcpIpOutputStream(ipAddress,port.toInt())
                 val escpos= EscPos(stream)
                 val algorithm= BitonalOrderedDither()
@@ -151,7 +151,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
       try {
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
         val  stream = TcpIpOutputStream(ipAddress,port.toInt())
         val escpos= EscPos(stream)
         val algorithm= BitonalOrderedDither()
@@ -184,7 +184,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
       try {
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
         val  stream = TcpIpOutputStream(ipAddress,port.toInt())
         val escpos= EscPos(stream)
         val algorithm= BitonalOrderedDither()

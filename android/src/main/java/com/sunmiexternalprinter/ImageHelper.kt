@@ -19,7 +19,6 @@ class ImageHelper (maxWidth:Int, maxHeight:Int){
     this.maxWidth = maxWidth
     this.maxHeight = maxHeight
   }
-  constructor() : this(576,24)
 
   fun sliceImage(coffeeImage: CoffeeImage): List<CoffeeImage> {
     val listImages: MutableList<CoffeeImage> = ArrayList()
