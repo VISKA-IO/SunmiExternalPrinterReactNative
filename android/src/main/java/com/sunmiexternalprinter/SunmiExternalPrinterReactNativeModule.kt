@@ -124,6 +124,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                 val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
                 val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
                 val  stream = TcpIpOutputStream(ipAddress,port.toInt())
+
                 val escpos= EscPos(stream)
                 val algorithm= BitonalOrderedDither()
                 val imageWrapper = RasterBitImageWrapper()
@@ -135,6 +136,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                 BitonalThreshold()
               )
               escpos.feed(5).cut(EscPos.CutMode.FULL)
+              escpos.close()
                 promise.resolve("Print Successfully")
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
@@ -164,9 +166,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         escpos.cut(EscPos.CutMode.FULL)
+        escpos.close()
         promise.resolve("Print Successfully")
-
-
 
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
@@ -197,6 +198,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         escpos.cut(EscPos.CutMode.FULL)
+        escpos.close()
         promise.resolve("Print Successfully")
 
       } catch (e: java.lang.Exception) {
