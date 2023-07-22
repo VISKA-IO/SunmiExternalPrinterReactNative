@@ -238,7 +238,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         escpos.close()
         promise.resolve(true)
       }catch (e:Exception){
-        promise.reject(false)
+        promise.reject("Error", e.toString())
       }
     }.start()
 
