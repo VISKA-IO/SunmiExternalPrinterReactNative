@@ -95,3 +95,11 @@ export const convertHTMLtoBase64 = async (html: string, width: number) => {
     return error;
   }
 };
+
+export const openDrawer = async (ipAddress: string, port: string) => {
+  try {
+    return await SunmiExternalPrinterReactNative.openDrawer(ipAddress, port);
+  } catch (error) {
+    return error;
+  }
+};
