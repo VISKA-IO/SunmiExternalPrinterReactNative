@@ -166,7 +166,8 @@ function App(): JSX.Element {
                   '<br>Привет мир \n' + // Russian
                   '<br>नमस्ते दुनिया \n' + //  Hindi
                   '<p class="korean"><br>안녕하세요 세계</p>' + // if necessary, you can download and install on your environment the Single Day from fonts.google...
-                  '</body>'
+                  '</body>',
+                400
               );
               console.log(Print);
             }}
