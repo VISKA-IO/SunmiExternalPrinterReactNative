@@ -124,6 +124,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                 val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
                 val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
                 val  stream = TcpIpOutputStream(ipAddress,port.toInt())
+
                 val escpos= EscPos(stream)
                 val algorithm= BitonalOrderedDither()
                 val imageWrapper = RasterBitImageWrapper()
@@ -135,6 +136,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                 BitonalThreshold()
               )
               escpos.feed(5).cut(EscPos.CutMode.FULL)
+              escpos.close()
                 promise.resolve("Print Successfully")
             } catch (e: java.lang.Exception) {
                 e.printStackTrace()
@@ -164,9 +166,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         escpos.cut(EscPos.CutMode.FULL)
+        escpos.close()
         promise.resolve("Print Successfully")
-
-
 
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
@@ -197,6 +198,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         escpos.cut(EscPos.CutMode.FULL)
+        escpos.close()
         promise.resolve("Print Successfully")
 
       } catch (e: java.lang.Exception) {
@@ -224,6 +226,23 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
 
     }
+  @ReactMethod
+  fun openDrawer(ipAddress:String,port:String,promise:Promise){
+    this.promise=promise
+    Thread{
+      try {
+        val stream = TcpIpOutputStream(ipAddress, port.toInt())
+        val escpos = EscPos(stream)
+        escpos.write(27).write(112).write(0).write(25).write(250);
+        escpos.write(27).write(0).write(-56).write(-56)
+        escpos.close()
+        promise.resolve(true)
+      }catch (e:Exception){
+        promise.reject("Error", e.toString())
+      }
+    }.start()
+
+  }
     @ReactMethod
     fun stopDiscovery(promise:Promise){
         try {
