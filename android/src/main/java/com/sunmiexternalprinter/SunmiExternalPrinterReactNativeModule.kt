@@ -1,12 +1,23 @@
 package com.sunmiexternalprinter
 
 
+import android.annotation.SuppressLint
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
+import android.os.Handler
+import android.os.Looper
 import android.util.Base64
+import android.util.Log
+import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.github.anastaciocintra.escpos.EscPos
@@ -16,11 +27,23 @@ import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
+import java.util.SortedSet
+import java.util.TreeSet
 
 
 class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-    private var promise: Promise? = null
-    private var nsdManager:NsdManager?=null
+  private val SCAN_PERIOD: Long = 10000
+  private var promise: Promise? = null
+  private var nsdManager:NsdManager?=null
+  val bluetoothManager: BluetoothManager = ContextCompat.getSystemService(
+    this.reactApplicationContext,
+    BluetoothManager::class.java
+  )!!
+  val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
+  private var scanning = false
+  private val handler = Handler(Looper.getMainLooper())
+  private val bleScanResults: SortedSet<BluetoothDeviceComparable> = TreeSet()
+  var stream:BluetoothStream?=null
 
     private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
         reactContext
@@ -257,6 +280,85 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             promise.reject("Error",e.toString())
         }
     }
+  private val receiver = object : BroadcastReceiver() {
+
+    override fun onReceive(context: Context, intent: Intent) {
+      val action: String? = intent.action
+      when(action) {
+        BluetoothDevice.ACTION_FOUND -> {
+          // Discovery has found a device. Get the BluetoothDevice
+          // object and its info from the Intent.
+          val device: BluetoothDevice =
+            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
+          val deviceComparable:BluetoothDeviceComparable=BluetoothDeviceComparable(device)
+          this@PrinterModule.bleScanResults.add(deviceComparable)
+
+        }
+      }
+    }
+  }
+
+  @SuppressLint("MissingPermission")
+  @ReactMethod
+  private fun scanBLDevice(promise:Promise) {
+    this.promise=promise
+    if(Helper.checkBluetoothScanPermission(this.reactApplicationContext,this.currentActivity!!)) {
+      Thread {
+
+        if(!scanning){
+          handler.postDelayed({
+            scanning=false
+            bluetoothAdapter?.cancelDiscovery()
+            val result: WritableArray = Helper.SetBLDevicestoWriteableArray(bleScanResults,this.reactApplicationContext,this.currentActivity!!)
+            Log.d("Printer Module"," Bluetooth Discovery Returned with Results")
+            promise.resolve(result);
+          },SCAN_PERIOD)
+          scanning=true
+          bluetoothAdapter?.startDiscovery()
+          val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+          this.reactApplicationContext.registerReceiver(receiver, filter)
+          Log.d("Printer Module"," Bluetooth Discovery Started")
+        }else{
+          scanning=false
+          bluetoothAdapter?.cancelDiscovery()
+          Log.d("Printer Module","Bluetooth Discovery went over the time limit")
+          promise.reject("Printer Module","Bluetooth Discovery went over the time limit")
+        }
+
+      }.start()
+    }
+  }
+
+
+
+
+
+  @ReactMethod
+  private fun printImageByBluetooth(nameOraddress:String,base64Image:String,addresspromise:Promise){
+    this.promise=addresspromise
+    Thread {
+      try {
+        val blDevice=Helper.findBLDevice(nameOraddress,bluetoothAdapter!!,bleScanResults)!!
+        if(stream!==null){
+          stream!!.closeSocket()
+        }
+        stream=BluetoothStream(blDevice, this.promise!!)
+        val escpos= EscPos(stream)
+        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
+        val algorithm= BitonalOrderedDither()
+        val imageWrapper = RasterBitImageWrapper()
+        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+        escpos.write(imageWrapper, escposImage).feed(5).cut(EscPos.CutMode.FULL).close()
+      } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+        promise?.reject("Error",e.toString())
+      }
+    }.start()
+
+
+  }
 
 
   companion object {

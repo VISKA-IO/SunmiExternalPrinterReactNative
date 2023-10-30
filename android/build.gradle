@@ -81,7 +81,8 @@ dependencies {
   implementation 'com.facebook.react:react-native:+' // change to react-android:+ when debugging// change to react-native:+ when npm publish
   implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
   implementation 'com.github.DantSu:ESCPOS-ThermalPrinter-Android:3.2.0'
-  androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation 'androidx.core:core:1.7.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
   implementation 'com.github.anastaciocintra:escpos-coffee:4.1.0'
   implementation 'com.izettle:html2bitmap:1.9'
 
