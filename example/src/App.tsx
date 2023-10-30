@@ -12,6 +12,7 @@ import {
   useColorScheme,
   TouchableOpacity,
   FlatList,
+  PermissionsAndroid,
 } from 'react-native';
 import { Colors, Header } from 'react-native/Libraries/NewAppScreen';
 import {
@@ -19,18 +20,52 @@ import {
   EscPosImageWithTCPConnectionGraphicsImageWrapper,
   EscPosImageWithTCPConnectionRasterBitImageWrapper,
   openDrawer,
+  printImageByBluetooth,
+  scanBLDevice,
   startNetworkDiscovery,
   stopNetworkDiscovery,
 } from 'sunmi-external-printer';
 import { DeviceEventEmitter } from 'react-native';
 import { useState } from 'react';
 import { convertHTMLtoBase64 } from '../../src';
+import type { printerDevice } from 'src/printerDevice';
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [ipAddress, setIpAddress] = useState<string>('');
   const [port, setPort] = useState<string>('');
   const [printerName, setPrinterName] = useState<string>('');
   const [devices, setListofDevices] = useState<ItemData[]>([]);
+  const [currPrinter, setCurrPrinter] = useState<printerDevice | null>(null);
+  const [blDevices, setListofBlDevices] = useState<printerDevice[]>([]);
+  const [showFlatListNetwork, setShowFlatListNetwork] = useState<boolean>(true);
+  const [showFlatListBT, setShowFlatListBT] = useState<boolean>(false);
+
+  const Item2 = ({ item, onPress, backgroundColor, textColor }: any) => (
+    <TouchableOpacity
+      onPress={onPress}
+      style={[styles.item, { backgroundColor }]}
+    >
+      <Text style={[styles.title, { color: textColor }]}>{item.name}</Text>
+      <Text style={[styles.title, { color: textColor }]}>{item.address}</Text>
+    </TouchableOpacity>
+  );
+  const renderItem2 = ({ item }: { item: printerDevice }) => {
+    const backgroundColor =
+      item.name ===
+      (currPrinter === null ? ' ' : (currPrinter!!.name as string))
+        ? '#00008B'
+        : 'blue';
+    return (
+      <Item2
+        item={item}
+        onPress={async () => {
+          setCurrPrinter(item);
+        }}
+        backgroundColor={backgroundColor}
+        textColor={'white'}
+      />
+    );
+  };
   const renderItem = ({ item }: { item: ItemData }) => {
     const backgroundColor =
       item.printerIPAddress === ipAddress ? '#00008B' : 'blue';
@@ -120,6 +155,9 @@ function App(): JSX.Element {
 
                 setListofDevices([...devices, device]);
               });
+              setListofBlDevices([]);
+              setShowFlatListBT(false);
+              setShowFlatListNetwork(true);
               console.log(networkDiscovery);
             }}
           />
@@ -129,6 +167,8 @@ function App(): JSX.Element {
               const Print = await stopNetworkDiscovery();
               DeviceEventEmitter.removeAllListeners();
               setListofDevices([]);
+              setShowFlatListNetwork(false);
+              setShowFlatListBT(true);
               console.log(Print);
             }}
           />
@@ -179,8 +219,53 @@ function App(): JSX.Element {
               console.log(drawer);
             }}
           />
+          <Button
+            title="startBTDisovery"
+            onPress={async () => {
+              const requestBLPermissions = async () => {
+                const res = await PermissionsAndroid.request(
+                  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION!!
+                );
+                await PermissionsAndroid.requestMultiple([
+                  PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN!!,
+                  PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT!!,
+                ]);
+                console.log(res);
+              };
+              await requestBLPermissions();
+              const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN!!,
+                {
+                  title: 'Android Scan Permission',
+                  message: 'Scan Bluetooth Permission',
+                  buttonNeutral: 'A ask Me Later',
+                  buttonNegative: 'Cancel',
+                  buttonPositive: 'OK',
+                }
+              );
+              if (granted) {
+                const results = await scanBLDevice();
+                console.log(results);
+                setListofBlDevices(results);
+                setShowFlatListBT(true);
+                setShowFlatListNetwork(false);
+                setListofDevices([]);
+              }
+            }}
+          />
+
+          <Button
+            title="printImageByBluetooth"
+            onPress={async () => {
+              const result = await printImageByBluetooth(
+                currPrinter!!,
+                base64Image
+              );
+              console.log(result);
+            }}
+          />
           <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
-            Current Device:{printerName}
+            Current IP Printer Device:{printerName}
           </Text>
           <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
             IPAddress:{ipAddress}
@@ -189,17 +274,28 @@ function App(): JSX.Element {
             Port:{port}
           </Text>
           <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
-            Discover Network List
+            Current BTPrinter:{currPrinter == null ? ' ' : currPrinter.name}{' '}
+            {currPrinter == null ? ' ' : currPrinter.address}
           </Text>
         </View>
       </ScrollView>
       <View style={{ borderWidth: 5, height: 300 }}>
-        <FlatList
-          data={devices}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.printerIPAddress}
-          extraData={ipAddress}
-        />
+        {showFlatListBT && (
+          <FlatList
+            data={blDevices}
+            renderItem={renderItem2}
+            keyExtractor={(item) => item.address}
+            extraData={currPrinter}
+          />
+        )}
+        {showFlatListNetwork && (
+          <FlatList
+            data={devices}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.printerIPAddress}
+            extraData={ipAddress}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

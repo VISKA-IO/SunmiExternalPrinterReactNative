@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+import type { printerDevice } from './printerDevice';
 
 const LINKING_ERROR =
   `The package 'sunmi-external-printer' doesn't seem to be linked. Make sure: \n\n` +
@@ -99,6 +100,28 @@ export const convertHTMLtoBase64 = async (html: string, width: number) => {
 export const openDrawer = async (ipAddress: string, port: string) => {
   try {
     return await SunmiExternalPrinterReactNative.openDrawer(ipAddress, port);
+  } catch (error) {
+    return error;
+  }
+};
+
+export const scanBLDevice = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.scanBLDevice();
+  } catch (error) {
+    return error;
+  }
+};
+
+export const printImageByBluetooth = async (
+  device: printerDevice,
+  base64Image: string
+) => {
+  try {
+    return await SunmiExternalPrinterReactNative.printImageByBluetooth(
+      device.name,
+      base64Image
+    );
   } catch (error) {
     return error;
   }

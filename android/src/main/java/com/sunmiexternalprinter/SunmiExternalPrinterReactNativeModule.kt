@@ -291,7 +291,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           val device: BluetoothDevice =
             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
           val deviceComparable:BluetoothDeviceComparable=BluetoothDeviceComparable(device)
-          this@PrinterModule.bleScanResults.add(deviceComparable)
+          this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
 
         }
       }
