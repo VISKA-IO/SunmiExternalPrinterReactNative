@@ -16,7 +16,7 @@ import java.util.logging.Logger
 
 
 @SuppressLint("MissingPermission")
-class BluetoothStream(device:BluetoothDevice, private val promise: Promise): PipedOutputStream() {
+class BluetoothStream(private val device:BluetoothDevice, private val promise: Promise): PipedOutputStream() {
     private var pipedInputStream: PipedInputStream? = null
     private val MY_UUID= "00001101-0000-1000-8000-00805F9B34FB"
     private var threadPrint: Thread? = null
@@ -30,10 +30,7 @@ class BluetoothStream(device:BluetoothDevice, private val promise: Promise): Pip
 
     private fun checkConnect():Boolean{
         return try {
-            if(!mmSocket!!.isConnected){
-                println("Not Connected to socket")
-            mmSocket?.connect()
-            }
+            mmSocket!!.connect()
             Log.d("Socket Connect","Socket Connect Successful")
             true
         }catch(error:Error){
@@ -45,12 +42,13 @@ class BluetoothStream(device:BluetoothDevice, private val promise: Promise): Pip
     }
 
     init{
-        mmSocket= device.createRfcommSocketToServiceRecord(UUID.fromString(MY_UUID))
+        mmSocket= device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(MY_UUID))
         pipedInputStream = PipedInputStream()
         super.connect(pipedInputStream)
         val printRunnable=Runnable{
         //connect to BlDevice first
           if(checkConnect()){
+            println("Here")
               val mmOutStream: OutputStream = mmSocket!!.outputStream
               val mmBuffer: ByteArray = ByteArray(1024)
               while (true) {

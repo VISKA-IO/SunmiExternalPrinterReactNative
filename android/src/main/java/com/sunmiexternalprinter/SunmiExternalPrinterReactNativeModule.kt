@@ -34,7 +34,7 @@ import java.util.TreeSet
 class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   private val SCAN_PERIOD: Long = 10000
   private var promise: Promise? = null
-  private var nsdManager:NsdManager?=null
+  private var nsdManager: NsdManager? = null
   val bluetoothManager: BluetoothManager = ContextCompat.getSystemService(
     this.reactApplicationContext,
     BluetoothManager::class.java
@@ -43,72 +43,75 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   private var scanning = false
   private val handler = Handler(Looper.getMainLooper())
   private val bleScanResults: SortedSet<BluetoothDeviceComparable> = TreeSet()
-  var stream:BluetoothStream?=null
+  var stream: BluetoothStream? = null
 
-    private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
-        reactContext
-            .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-            .emit(eventName, params)
-    }
+  private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
+    reactContext
+      .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+      .emit(eventName, params)
+  }
 
-    private val resolveListener = object : NsdManager.ResolveListener {
+  private val resolveListener = object : NsdManager.ResolveListener {
 
-        override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
-            // Called when the resolve fails. Use the error code to debug.
-
-        }
-
-        override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
-
-            val port: Int = serviceInfo.port
-            val host: InetAddress = serviceInfo.host
-            val serviceName= serviceInfo.serviceName
-            val payload=Arguments.createMap().apply{
-                putString("Service Discovery",serviceName)
-                putString("ip",host.hostAddress)
-                putString("port",port.toString())
-            }
-            sendEvent(reactContext,"OnPrinterFound",payload)
-        }
-    }
-
-    private val discoveryListener: NsdManager.DiscoveryListener = object :NsdManager.DiscoveryListener{
-        override fun onStartDiscoveryFailed(p0: String?, p1: Int) {
-            nsdManager?.stopServiceDiscovery(this)
-
-        }
-
-        override fun onStopDiscoveryFailed(p0: String?, p1: Int) {
-
-            nsdManager?.stopServiceDiscovery(this)
-        }
-
-        override fun onDiscoveryStarted(p0: String?) {
-
-        }
-
-        override fun onDiscoveryStopped(p0: String?) {
-
-        }
-
-        override fun onServiceFound(p0: NsdServiceInfo?) {
-            println("Found")
-            nsdManager?.resolveService(p0,  resolveListener)
-
-
-        }
-
-        override fun onServiceLost(p0: NsdServiceInfo?) {
-
-        }
+    override fun onResolveFailed(serviceInfo: NsdServiceInfo, errorCode: Int) {
+      // Called when the resolve fails. Use the error code to debug.
 
     }
-    override fun getName(): String {
-        return NAME
+
+    override fun onServiceResolved(serviceInfo: NsdServiceInfo) {
+
+      val port: Int = serviceInfo.port
+      val host: InetAddress = serviceInfo.host
+      val serviceName = serviceInfo.serviceName
+      val payload = Arguments.createMap().apply {
+        putString("Service Discovery", serviceName)
+        putString("ip", host.hostAddress)
+        putString("port", port.toString())
+      }
+      sendEvent(reactContext, "OnPrinterFound", payload)
     }
+  }
+
+  private val discoveryListener: NsdManager.DiscoveryListener =
+    object : NsdManager.DiscoveryListener {
+      override fun onStartDiscoveryFailed(p0: String?, p1: Int) {
+        nsdManager?.stopServiceDiscovery(this)
+
+      }
+
+      override fun onStopDiscoveryFailed(p0: String?, p1: Int) {
+
+        nsdManager?.stopServiceDiscovery(this)
+      }
+
+      override fun onDiscoveryStarted(p0: String?) {
+
+      }
+
+      override fun onDiscoveryStopped(p0: String?) {
+
+      }
+
+      override fun onServiceFound(p0: NsdServiceInfo?) {
+        println("Found")
+        nsdManager?.resolveService(p0, resolveListener)
+
+
+      }
+
+      override fun onServiceLost(p0: NsdServiceInfo?) {
+
+      }
+
+    }
+
+  override fun getName(): String {
+    return NAME
+  }
+
   @ReactMethod
-  fun convertHTMLtoBase64(htmlString:String,width:Int, promise:Promise){
-    this.promise=promise
+  fun convertHTMLtoBase64(htmlString: String, width: Int, promise: Promise) {
+    this.promise = promise
     Thread {
       try {
         val bitmap: Bitmap? =
@@ -127,9 +130,9 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
         promise.resolve(base64String)
 
-      }catch(e: java.lang.Exception){
+      } catch (e: java.lang.Exception) {
         e.printStackTrace()
-        promise.reject("Error",e.toString())
+        promise.reject("Error", e.toString())
 
       }
 
@@ -137,52 +140,64 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
 
   }
-    @ReactMethod
-    fun printImageWithTCPRasterBitImageWrapper(base64Image:String,ipAddress:String,port:String,promise: Promise) {
-        this.promise=promise
 
-        Thread {
-            try {
-                val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
-                val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-                val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
-                val  stream = TcpIpOutputStream(ipAddress,port.toInt())
-
-                val escpos= EscPos(stream)
-                val algorithm= BitonalOrderedDither()
-                val imageWrapper = RasterBitImageWrapper()
-                val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-                ImageHelper(scaledBitmap.width,scaledBitmap.height).write(
-                escpos,
-                CoffeeImageAndroidImpl(scaledBitmap),
-                imageWrapper,
-                BitonalThreshold()
-              )
-              escpos.feed(5).cut(EscPos.CutMode.FULL)
-              escpos.close()
-                promise.resolve("Print Successfully")
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-                promise.reject("Error",e.toString())
-            }
-        }.start()
-
-}
   @ReactMethod
-  fun printImageWithTCPBitImageWrapper(base64Image:String,ipAddress:String,port:String,promise: Promise){
-    this.promise=promise
+  fun printImageWithTCPRasterBitImageWrapper(
+    base64Image: String,
+    ipAddress: String,
+    port: String,
+    promise: Promise
+  ) {
+    this.promise = promise
 
     Thread {
       try {
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
-        val  stream = TcpIpOutputStream(ipAddress,port.toInt())
-        val escpos= EscPos(stream)
-        val algorithm= BitonalOrderedDither()
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
+        val stream = TcpIpOutputStream(ipAddress, port.toInt())
+
+        val escpos = EscPos(stream)
+        val algorithm = BitonalOrderedDither()
+        val imageWrapper = RasterBitImageWrapper()
+        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+        ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
+          escpos,
+          CoffeeImageAndroidImpl(scaledBitmap),
+          imageWrapper,
+          BitonalThreshold()
+        )
+        escpos.feed(5).cut(EscPos.CutMode.FULL)
+        escpos.close()
+        promise.resolve("Print Successfully")
+      } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+        promise.reject("Error", e.toString())
+      }
+    }.start()
+
+  }
+
+  @ReactMethod
+  fun printImageWithTCPBitImageWrapper(
+    base64Image: String,
+    ipAddress: String,
+    port: String,
+    promise: Promise
+  ) {
+    this.promise = promise
+
+    Thread {
+      try {
+        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
+        val stream = TcpIpOutputStream(ipAddress, port.toInt())
+        val escpos = EscPos(stream)
+        val algorithm = BitonalOrderedDither()
         val imageWrapper = BitImageWrapper()
         val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-        ImageHelper(scaledBitmap.width,scaledBitmap.height).write(
+        ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
           escpos,
           CoffeeImageAndroidImpl(scaledBitmap),
           imageWrapper,
@@ -194,27 +209,33 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
-        promise.reject("Error",e.toString())
+        promise.reject("Error", e.toString())
       }
     }.start()
 
 
   }
+
   @ReactMethod
-  fun printImageWithGraphicsImageWrapper(base64Image:String,ipAddress:String,port:String,promise: Promise){
-    this.promise=promise
+  fun printImageWithGraphicsImageWrapper(
+    base64Image: String,
+    ipAddress: String,
+    port: String,
+    promise: Promise
+  ) {
+    this.promise = promise
 
     Thread {
       try {
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
-        val  stream = TcpIpOutputStream(ipAddress,port.toInt())
-        val escpos= EscPos(stream)
-        val algorithm= BitonalOrderedDither()
+        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
+        val stream = TcpIpOutputStream(ipAddress, port.toInt())
+        val escpos = EscPos(stream)
+        val algorithm = BitonalOrderedDither()
         val imageWrapper = GraphicsImageWrapper()
         val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-        ImageHelper(scaledBitmap.width,scaledBitmap.height).write(
+        ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
           escpos,
           CoffeeImageAndroidImpl(scaledBitmap),
           imageWrapper,
@@ -226,33 +247,35 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
-        promise.reject("Error",e.toString())
+        promise.reject("Error", e.toString())
       }
     }.start()
 
 
   }
 
-    @ReactMethod
-    fun startDiscovery(promise:Promise){
-        try {
-            nsdManager = reactApplicationContext.applicationContext.getSystemService(Context.NSD_SERVICE) as NsdManager
-            nsdManager?.discoverServices(
-             "_afpovertcp._tcp",
-                NsdManager.PROTOCOL_DNS_SD,
-                discoveryListener
-            )
-            promise.resolve("Discovery Started")
-        }catch (e:Exception){
-            promise.reject("Error",e.toString())
-        }
-
-
-    }
   @ReactMethod
-  fun openDrawer(ipAddress:String,port:String,promise:Promise){
-    this.promise=promise
-    Thread{
+  fun startDiscovery(promise: Promise) {
+    try {
+      nsdManager =
+        reactApplicationContext.applicationContext.getSystemService(Context.NSD_SERVICE) as NsdManager
+      nsdManager?.discoverServices(
+        "_afpovertcp._tcp",
+        NsdManager.PROTOCOL_DNS_SD,
+        discoveryListener
+      )
+      promise.resolve("Discovery Started")
+    } catch (e: Exception) {
+      promise.reject("Error", e.toString())
+    }
+
+
+  }
+
+  @ReactMethod
+  fun openDrawer(ipAddress: String, port: String, promise: Promise) {
+    this.promise = promise
+    Thread {
       try {
         val stream = TcpIpOutputStream(ipAddress, port.toInt())
         val escpos = EscPos(stream)
@@ -260,37 +283,38 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         escpos.write(27).write(0).write(-56).write(-56)
         escpos.close()
         promise.resolve(true)
-      }catch (e:Exception){
+      } catch (e: Exception) {
         promise.reject("Error", e.toString())
       }
     }.start()
 
   }
-    @ReactMethod
-    fun stopDiscovery(promise:Promise){
-        try {
-            if(nsdManager!==null){
-                nsdManager?.stopServiceDiscovery(discoveryListener)
-            }
-            else{
-                throw Exception ("nsdManager cannot be null")
-            }
-            promise.resolve("Network Discovery stopped")
-        }catch (e:Exception){
-            promise.reject("Error",e.toString())
-        }
+
+  @ReactMethod
+  fun stopDiscovery(promise: Promise) {
+    try {
+      if (nsdManager !== null) {
+        nsdManager?.stopServiceDiscovery(discoveryListener)
+      } else {
+        throw Exception("nsdManager cannot be null")
+      }
+      promise.resolve("Network Discovery stopped")
+    } catch (e: Exception) {
+      promise.reject("Error", e.toString())
     }
+  }
+
   private val receiver = object : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
       val action: String? = intent.action
-      when(action) {
+      when (action) {
         BluetoothDevice.ACTION_FOUND -> {
           // Discovery has found a device. Get the BluetoothDevice
           // object and its info from the Intent.
           val device: BluetoothDevice =
             intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
-          val deviceComparable:BluetoothDeviceComparable=BluetoothDeviceComparable(device)
+          val deviceComparable: BluetoothDeviceComparable = BluetoothDeviceComparable(device)
           this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
 
         }
@@ -300,69 +324,75 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
   @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun scanBLDevice(promise:Promise) {
-    this.promise=promise
-    if(Helper.checkBluetoothScanPermission(this.reactApplicationContext,this.currentActivity!!)) {
+  private fun scanBLDevice(promise: Promise) {
+    this.promise = promise
+    if (Helper.checkBluetoothScanPermission(this.reactApplicationContext, this.currentActivity!!)) {
       Thread {
 
-        if(!scanning){
+        if (!scanning) {
           handler.postDelayed({
-            scanning=false
+            scanning = false
             bluetoothAdapter?.cancelDiscovery()
-            val result: WritableArray = Helper.SetBLDevicestoWriteableArray(bleScanResults,this.reactApplicationContext,this.currentActivity!!)
-            Log.d("Printer Module"," Bluetooth Discovery Returned with Results")
+            val result: WritableArray = Helper.SetBLDevicestoWriteableArray(
+              bleScanResults,
+              this.reactApplicationContext,
+              this.currentActivity!!
+            )
+            Log.d("Printer Module", " Bluetooth Discovery Returned with Results")
             promise.resolve(result);
-          },SCAN_PERIOD)
-          scanning=true
+          }, SCAN_PERIOD)
+          scanning = true
           bluetoothAdapter?.startDiscovery()
           val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
           this.reactApplicationContext.registerReceiver(receiver, filter)
-          Log.d("Printer Module"," Bluetooth Discovery Started")
-        }else{
-          scanning=false
+          Log.d("Printer Module", " Bluetooth Discovery Started")
+        } else {
+          scanning = false
           bluetoothAdapter?.cancelDiscovery()
-          Log.d("Printer Module","Bluetooth Discovery went over the time limit")
-          promise.reject("Printer Module","Bluetooth Discovery went over the time limit")
+          Log.d("Printer Module", "Bluetooth Discovery went over the time limit")
+          promise.reject("Printer Module", "Bluetooth Discovery went over the time limit")
         }
 
       }.start()
     }
   }
-
-
-
-
-
+  @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun printImageByBluetooth(nameOraddress:String,base64Image:String,addresspromise:Promise){
-    this.promise=addresspromise
-    Thread {
-      try {
-        val blDevice=Helper.findBLDevice(nameOraddress,bluetoothAdapter!!,bleScanResults)!!
-        if(stream!==null){
-          stream!!.closeSocket()
+  private fun printImageByBluetooth(
+    nameOraddress: String,
+    base64Image: String,
+    addresspromise: Promise
+  ) {
+    this.promise = addresspromise
+    println("Here Inside the function in android  ")
+    val pairedDevices:Set<BluetoothDevice> = bluetoothAdapter!!.bondedDevices
+      Thread {
+        try {
+          println("Here Insid the try Thread ")
+          val blDevice = Helper.findBLDevice(nameOraddress, bluetoothAdapter!!, bleScanResults)!!
+          stream = BluetoothStream(blDevice, this.promise!!)
+          val escpos = EscPos(stream)
+          val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+          val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+          val scaledBitmap =
+            Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
+          val algorithm = BitonalOrderedDither()
+          val imageWrapper = RasterBitImageWrapper()
+          val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+          escpos.write(imageWrapper, escposImage).feed(5).cut(EscPos.CutMode.FULL).close()
+        } catch (e: java.lang.Exception) {
+          e.printStackTrace()
+          promise?.reject("Error", e.toString())
         }
-        stream=BluetoothStream(blDevice, this.promise!!)
-        val escpos= EscPos(stream)
-        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
-        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-        val scaledBitmap= Bitmap.createScaledBitmap(bitmap,bitmap.width-40,bitmap.height,true)
-        val algorithm= BitonalOrderedDither()
-        val imageWrapper = RasterBitImageWrapper()
-        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-        escpos.write(imageWrapper, escposImage).feed(5).cut(EscPos.CutMode.FULL).close()
-      } catch (e: java.lang.Exception) {
-        e.printStackTrace()
-        promise?.reject("Error",e.toString())
-      }
-    }.start()
+      }.start()
 
 
-  }
+    }
 
 
   companion object {
     const val NAME = "SunmiExternalPrinterReactNative"
   }
-
 }
+
+

@@ -257,6 +257,7 @@ function App(): JSX.Element {
           <Button
             title="printImageByBluetooth"
             onPress={async () => {
+              console.log('Button Here');
               const result = await printImageByBluetooth(
                 currPrinter!!,
                 base64Image
