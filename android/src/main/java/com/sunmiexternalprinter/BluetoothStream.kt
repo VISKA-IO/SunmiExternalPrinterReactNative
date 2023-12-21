@@ -29,16 +29,19 @@ class BluetoothStream(private val device:BluetoothDevice, private val promise: P
         }
 
     private fun checkConnect():Boolean{
-        return try {
-            mmSocket!!.connect()
-            Log.d("Socket Connect","Socket Connect Successful")
-            true
-        }catch(error:Error){
-            promise.reject("Error",error.toString())
-            Log.e("Socket Connect","Error",error)
-            false
-
+      return try {
+        if(!mmSocket!!.isConnected){
+          println("Not Connected to socket")
+          mmSocket?.connect()
         }
+        Log.d("Socket Connect","Socket Connect Successful")
+        true
+      }catch(error:Error){
+        promise.reject("Error",error.toString())
+        Log.e("Socket Connect","Error",error)
+        false
+
+      }
     }
 
     init{
@@ -65,6 +68,7 @@ class BluetoothStream(private val device:BluetoothDevice, private val promise: P
         threadPrint = Thread(printRunnable)
         threadPrint!!.setUncaughtExceptionHandler(uncaughtException)
         threadPrint!!.start()
+
     }
     fun closeSocket() {
         mmSocket!!.close()

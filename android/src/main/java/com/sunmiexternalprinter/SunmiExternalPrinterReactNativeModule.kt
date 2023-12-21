@@ -368,8 +368,11 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     val pairedDevices:Set<BluetoothDevice> = bluetoothAdapter!!.bondedDevices
       Thread {
         try {
-          println("Here Insid the try Thread ")
+          println("Here Inside the try Thread ")
           val blDevice = Helper.findBLDevice(nameOraddress, bluetoothAdapter!!, bleScanResults)!!
+          if(stream!==null){
+            stream!!.closeSocket()
+          }
           stream = BluetoothStream(blDevice, this.promise!!)
           val escpos = EscPos(stream)
           val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
