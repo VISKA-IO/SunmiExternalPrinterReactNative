@@ -376,45 +376,45 @@ const styles = StyleSheet.create({
 export default App;
 ```
 
-For futher details please see the example folder 
+For futher details please see the example folder
 
 ## Functions:
 
 startNetworkDiscovery()
 
-| Parameters | Required | Type | Description |
-| --- | --- | --- | --- |
-| (void) | - | - | starts a device event emitter listener. To listen to the event add a listener that listens to ‘On Printer Found’ |
+| Parameters | Required | Type | Description                                                                                                      |
+| ---------- | -------- | ---- | ---------------------------------------------------------------------------------------------------------------- |
+| (void)     | -        | -    | starts a device event emitter listener. To listen to the event add a listener that listens to ‘On Printer Found’ |
 
 stopNetworkDiscovery()
 
-| Parameters | Required | Type | Description |
-| --- | --- | --- | --- |
-| (void) | - | - | Stops Network Discovery, make sure to also close your device event emitter |
+| Parameters | Required | Type | Description                                                                |
+| ---------- | -------- | ---- | -------------------------------------------------------------------------- |
+| (void)     | -        | -    | Stops Network Discovery, make sure to also close your device event emitter |
 
 EscPosImageWithTCPConnectionBitImageWrapper
 
-| Parameters | Required | Type | Description |
-| --- | --- | --- | --- |
-| base64Image | true | String | Print base64 image, remove the data:image; prefix if it has it.  |
-| ipAddress | true | String | ipAddress of the printer |
-| port  | true | String | port of the printer (is usally 9100) |
+| Parameters  | Required | Type   | Description                                                     |
+| ----------- | -------- | ------ | --------------------------------------------------------------- |
+| base64Image | true     | String | Print base64 image, remove the data:image; prefix if it has it. |
+| ipAddress   | true     | String | ipAddress of the printer                                        |
+| port        | true     | String | port of the printer (is usally 9100)                            |
 
 EscPosImageWithTCPConnectionGraphicsImageWrapper
 
-| Parameters | Required | Type | Description |
-| --- | --- | --- | --- |
-| base64Image | true | String | Print base64 image, remove the data:image; prefix if it has it.  |
-| ipAddress | true | String | ipAddress of the printer |
-| port  | true | String | port of the printer (is usally 9100) |
+| Parameters  | Required | Type   | Description                                                     |
+| ----------- | -------- | ------ | --------------------------------------------------------------- |
+| base64Image | true     | String | Print base64 image, remove the data:image; prefix if it has it. |
+| ipAddress   | true     | String | ipAddress of the printer                                        |
+| port        | true     | String | port of the printer (is usally 9100)                            |
 
 EscPosImageWithTCPConnectionRasterBitImageWrapper
 
-| Parameters | Required | Type | Description |
-| --- | --- | --- | --- |
-| base64Image | true | String | Print base64 image, remove the data:image; prefix if it has it.  |
-| ipAddress | true | String | ipAddress of the printer |
-| port  | true | String | port of the printer (is usally 9100) |
+| Parameters  | Required | Type   | Description                                                     |
+| ----------- | -------- | ------ | --------------------------------------------------------------- |
+| base64Image | true     | String | Print base64 image, remove the data:image; prefix if it has it. |
+| ipAddress   | true     | String | ipAddress of the printer                                        |
+| port        | true     | String | port of the printer (is usally 9100)                            |
 
 Only tested on Sunmi Cloud Printer NT311, The Printed Images are also only tested on width of 80mm.
 
@@ -422,16 +422,16 @@ Note: If an image size is larger or or smaller than 80mm, scale it down to the p
 
 scanBLDevice
 
-Returns a list of bluetooth devices (not just printers) after 10 seconds of scanning period with the name and MAC address
+Returns a list of filtered (just printers) and non-filtered bluetooth devices (not just printers) after 10 seconds of scanning period with the name and MAC address.
 
 printImageByBluetooth
 
-printing an Image by Bluetooth and initiates a full cut at the end , uses the BitonalOrderDither algorithm 
+printing an Image by Bluetooth and initiates a full cut at the end , uses the BitonalOrderDither algorithm
 
-| Parameters | Required | Type | Description |
-| --- | --- | --- | --- |
-| device | true | String | pass the device |
-| base64Image | true | String | base64 image, remove the data:image; prefix if it has it.  |
+| Parameters  | Required | Type   | Description                                               |
+| ----------- | -------- | ------ | --------------------------------------------------------- |
+| device      | true     | String | pass the device                                           |
+| base64Image | true     | String | base64 image, remove the data:image; prefix if it has it. |
 
 ## Contributing
 
