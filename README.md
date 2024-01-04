@@ -422,7 +422,7 @@ Note: If an image size is larger or or smaller than 80mm, scale it down to the p
 
 scanBLDevice
 
-Returns a list of filtered (just printers) and non-filtered bluetooth devices (not just printers) after 10 seconds of scanning period with the name and MAC address.
+Returns a list of filtered (just printers) and non-filtered bluetooth devices (not just printers) after roughly 12 seconds of scanning period with the name and MAC address.
 
 printImageByBluetooth
 
