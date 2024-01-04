@@ -45,19 +45,33 @@ class Helper {
       return true
 
     }
-    fun SetBLDevicestoWriteableArray(bleDevices:Set<BluetoothDeviceComparable>,context:Context,activity: Activity): WritableArray {
-      val result: WritableArray = Arguments.createArray()
-      var map: WritableMap = Arguments.createMap()
+    fun SetBLDevicestoWriteableArray(bleDevices:Set<BluetoothDeviceComparable>,context:Context,activity: Activity): WritableMap {
+      val resultUnFiltered: WritableArray = Arguments.createArray()
+      val resultFiltered:WritableArray= Arguments.createArray()
+      var deviceMap: WritableMap = Arguments.createMap()
+      var mapResult:WritableMap= Arguments.createMap()
 
       if(this.checkBluetoothConnectPermission(context,activity)) {
         for (bleDevice in bleDevices) {
-          map.putString("name",bleDevice.bluetoothDevice.name)
-          map.putString("address",bleDevice.bluetoothDevice.address)
-          result.pushMap(map)
-          map= Arguments.createMap()
+          deviceMap.putString("name",bleDevice.bluetoothDevice.name)
+          deviceMap.putString("address",bleDevice.bluetoothDevice.address)
+          resultUnFiltered.pushMap(deviceMap)
+          deviceMap= Arguments.createMap()
+        }
+        for (bleDevice in bleDevices) {
+          if(bleDevice.bluetoothDevice.bluetoothClass.majorDeviceClass==1536 || bleDevice.bluetoothDevice.bluetoothClass.deviceClass==1572){
+            Log.d("Helper","device filtered ${bleDevice.bluetoothDevice.name}")
+            deviceMap.putString("name",bleDevice.bluetoothDevice.name)
+            deviceMap.putString("address",bleDevice.bluetoothDevice.address)
+            resultFiltered.pushMap(deviceMap)
+            deviceMap= Arguments.createMap()
+          }
+
         }
       }
-      return result
+      mapResult.putArray("filtered_result",resultFiltered)
+      mapResult.putArray("unfiltered_result", resultUnFiltered)
+      return mapResult
 
     }
 
