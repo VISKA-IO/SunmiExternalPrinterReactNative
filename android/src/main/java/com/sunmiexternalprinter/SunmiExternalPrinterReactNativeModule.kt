@@ -43,11 +43,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
   private var scanning = false
   private val handler = Handler(Looper.getMainLooper())
-  private val bleScanResults= Collections.synchronizedList(mutableListOf<BluetoothDeviceComparable>())
-  private val bleScanResultsClassChanged= Collections.synchronizedList(mutableListOf<BluetoothDeviceComparable>())
-  private val bleScanResultsDataClass= Collections.synchronizedList(mutableListOf<BTDevice>())
+  private val bleScanResults:SortedSet<BluetoothDeviceComparable> = TreeSet()
+  private val bleScanResultsClassChanged= mutableListOf<BluetoothDeviceComparable>()
+  private val bleScanResultsDataClass:SortedSet<BluetoothDeviceComparable> = TreeSet()
   var stream: BluetoothStream? = null
-  val lock = Any() // Shared lock object
   private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -313,7 +312,6 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
       val action: String? = intent.action
       when (action) {
         BluetoothDevice.ACTION_FOUND -> {
-          synchronized(lock){
             val device: BluetoothDevice =
               intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
             val majorDeviceClass = device.bluetoothClass.majorDeviceClass
@@ -325,12 +323,11 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
               this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
               this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.add(BTDevice(device.name,device.address,device.bluetoothClass.majorDeviceClass,device.bluetoothClass.deviceClass))
             }
-          }
+
 
 
         }
         BluetoothDevice.ACTION_CLASS_CHANGED->{
-          synchronized(lock){
             Log.d("Discovery","Device Action Class Changed ")
             //find the BL device and then change
             val device: BluetoothDevice =intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
@@ -372,11 +369,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
             }
 
-          }
+
           }
 
         BluetoothAdapter.ACTION_DISCOVERY_FINISHED-> {
-synchronized(lock){
   val result: WritableMap = Helper.SetBLDevicestoWriteableArray(
     this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass,
     this@SunmiExternalPrinterReactNativeModule.reactApplicationContext,
@@ -396,7 +392,7 @@ synchronized(lock){
 
   this@SunmiExternalPrinterReactNativeModule.promise!!.resolve(result)
 
-}
+
 
         }
 
@@ -439,7 +435,7 @@ synchronized(lock){
         try {
           println("Here Inside the try Thread ")
           val blDevice = Helper.findBLDevice(nameOraddress, bluetoothAdapter!!, bleScanResults)!!
-          if(stream!==null){
+          if(stream!=null){
             stream!!.closeSocket()
           }
           stream = BluetoothStream(blDevice, this.promise!!)
