@@ -45,7 +45,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   private val handler = Handler(Looper.getMainLooper())
   private val bleScanResults:SortedSet<BluetoothDeviceComparable> = TreeSet()
   private val bleScanResultsClassChanged= mutableListOf<BluetoothDeviceComparable>()
-  private val bleScanResultsDataClass:SortedSet<BluetoothDeviceComparable> = TreeSet()
+  private val bleScanResultsDataClass= mutableListOf<BTDevice>()
   var stream: BluetoothStream? = null
   private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
     reactContext
@@ -317,10 +317,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             val majorDeviceClass = device.bluetoothClass.majorDeviceClass
             val deviceClass= device.bluetoothClass.deviceClass
             val deviceComparable: BluetoothDeviceComparable = BluetoothDeviceComparable(device)
-            val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResults.find { it.bluetoothDevice==deviceComparable.bluetoothDevice }
+          this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
+            val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.find { it.address==deviceComparable.bluetoothDevice.address }
             if(find==null){
               Log.d("Discovery"," On Device Found where find ==null \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
-              this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
               this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.add(BTDevice(device.name,device.address,device.bluetoothClass.majorDeviceClass,device.bluetoothClass.deviceClass))
             }
 
@@ -349,23 +349,14 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                 " Address:${device.address} \n" +
                 " MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n" +
                 " Device Class ${device.bluetoothClass.deviceClass}")
-              val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResults.find { it.bluetoothDevice==deviceComparable.bluetoothDevice }
               val findDataClass=this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.find{it.address==device.address}
               if(findDataClass!=null){
                 val result=this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.remove(findDataClass)
                 Log.d("Discovery","on Action Class Changed : Changed Remove Scan Data Class Result ${result}")
               }
-              if(find!=null){
-                val result=this@SunmiExternalPrinterReactNativeModule.bleScanResults.remove(find)
-                Log.d("Discovery","on Action Class Changed : Changed Remove Scan Result ${result}")
-              }
-              val result= this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
-              this@SunmiExternalPrinterReactNativeModule.bleScanResultsClassChanged.add(deviceComparable)
-              val resultDataClass=this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.add(
+              this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.add(
                 BTDevice(device.name,device.address,device.bluetoothClass.majorDeviceClass,device.bluetoothClass.deviceClass)
               )
-              Log.d("Discovery","on Action Class Changed : Changed Adding Scan Result ${result}")
-              Log.d("Discovery","on Action Class Changed : Changed Adding Scan Result Data Class ${result}")
 
             }
 

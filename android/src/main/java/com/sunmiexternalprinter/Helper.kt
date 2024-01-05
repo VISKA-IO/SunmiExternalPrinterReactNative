@@ -87,7 +87,7 @@ class Helper {
       return pattern.matcher(input).matches()
     }
     @SuppressLint("MissingPermission")
-    fun findBLDevice(nameOraddress: String,bluetoothAdapter:BluetoothAdapter,blescanResults: MutableList<BluetoothDeviceComparable>): BluetoothDevice? {
+    fun findBLDevice(nameOraddress: String,bluetoothAdapter:BluetoothAdapter,blescanResults: SortedSet<BluetoothDeviceComparable>): BluetoothDevice? {
       try{
         val pairedDevices = bluetoothAdapter.bondedDevices
         val pairedDevice= pairedDevices.find {
