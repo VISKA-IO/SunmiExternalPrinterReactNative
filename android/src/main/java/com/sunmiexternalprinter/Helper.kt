@@ -45,7 +45,7 @@ class Helper {
       return true
 
     }
-    fun SetBLDevicestoWriteableArray(bleDevices:Set<BluetoothDeviceComparable>,context:Context,activity: Activity): WritableMap {
+    fun SetBLDevicestoWriteableArray(bleDevices:MutableList<BluetoothDeviceComparable>,context:Context,activity: Activity): WritableMap {
       val resultUnFiltered: WritableArray = Arguments.createArray()
       val resultFiltered:WritableArray= Arguments.createArray()
       var deviceMap: WritableMap = Arguments.createMap()
@@ -86,7 +86,7 @@ class Helper {
       return pattern.matcher(input).matches()
     }
     @SuppressLint("MissingPermission")
-    fun findBLDevice(nameOraddress: String,bluetoothAdapter:BluetoothAdapter,blescanResults: SortedSet<BluetoothDeviceComparable>): BluetoothDevice? {
+    fun findBLDevice(nameOraddress: String,bluetoothAdapter:BluetoothAdapter,blescanResults: MutableList<BluetoothDeviceComparable>): BluetoothDevice? {
       try{
         val pairedDevices = bluetoothAdapter.bondedDevices
         val pairedDevice= pairedDevices.find {

@@ -246,8 +246,8 @@ function App(): JSX.Element {
               if (granted) {
                 const results = await scanBLDevice();
                 console.log(results);
-                console.log(results.filtered_results);
-                setListofBlDevices(results.unfiltered_results);
+                console.log(results.filtered_result);
+                setListofBlDevices(results.unfiltered_result);
                 setShowFlatListBT(true);
                 setShowFlatListNetwork(false);
                 setListofDevices([]);

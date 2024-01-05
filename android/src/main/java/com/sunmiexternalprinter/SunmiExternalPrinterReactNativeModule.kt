@@ -42,7 +42,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
   private var scanning = false
   private val handler = Handler(Looper.getMainLooper())
-  private val bleScanResults: SortedSet<BluetoothDeviceComparable> = TreeSet()
+  private val bleScanResults= mutableListOf<BluetoothDeviceComparable>()
   var stream: BluetoothStream? = null
 
   private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
@@ -319,6 +319,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           val deviceComparable: BluetoothDeviceComparable = BluetoothDeviceComparable(device)
           val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResults.find { it.bluetoothDevice.address===deviceComparable.bluetoothDevice.address }
           if(find==null){
+            Log.d("Discovery"," On Device Found where find ==null \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
             this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
           }
 
