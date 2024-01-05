@@ -45,7 +45,7 @@ class Helper {
       return true
 
     }
-    fun SetBLDevicestoWriteableArray(bleDevices:MutableList<BluetoothDeviceComparable>,context:Context,activity: Activity): WritableMap {
+    fun SetBLDevicestoWriteableArray(bleDevices:MutableList<BTDevice>,context:Context,activity: Activity): WritableMap {
       val resultUnFiltered: WritableArray = Arguments.createArray()
       val resultFiltered:WritableArray= Arguments.createArray()
       var deviceMap: WritableMap = Arguments.createMap()
@@ -53,16 +53,17 @@ class Helper {
 
       if(this.checkBluetoothConnectPermission(context,activity)) {
         for (bleDevice in bleDevices) {
-          deviceMap.putString("name",bleDevice.bluetoothDevice.name)
-          deviceMap.putString("address",bleDevice.bluetoothDevice.address)
+          deviceMap.putString("name",bleDevice.name)
+          deviceMap.putString("address",bleDevice.address)
           resultUnFiltered.pushMap(deviceMap)
           deviceMap= Arguments.createMap()
         }
         for (bleDevice in bleDevices) {
-          if(bleDevice.bluetoothDevice.bluetoothClass.majorDeviceClass==1536 || bleDevice.bluetoothDevice.bluetoothClass.deviceClass==1572){
-            Log.d("Helper","device filtered ${bleDevice.bluetoothDevice.name}")
-            deviceMap.putString("name",bleDevice.bluetoothDevice.name)
-            deviceMap.putString("address",bleDevice.bluetoothDevice.address)
+          Log.d("Helper","device filtered beforee if statement ${bleDevice.name}")
+          if(bleDevice.majorDeviceClass==1536 || bleDevice.deviceClass==1572){
+            Log.d("Helper","device filtered ${bleDevice.name}")
+            deviceMap.putString("name",bleDevice.name)
+            deviceMap.putString("address",bleDevice.address)
             resultFiltered.pushMap(deviceMap)
             deviceMap= Arguments.createMap()
           }

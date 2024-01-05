@@ -27,6 +27,7 @@ import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
+import java.util.Collections
 import java.util.SortedSet
 import java.util.TreeSet
 
@@ -42,9 +43,11 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
   private var scanning = false
   private val handler = Handler(Looper.getMainLooper())
-  private val bleScanResults= mutableListOf<BluetoothDeviceComparable>()
+  private val bleScanResults= Collections.synchronizedList(mutableListOf<BluetoothDeviceComparable>())
+  private val bleScanResultsClassChanged= Collections.synchronizedList(mutableListOf<BluetoothDeviceComparable>())
+  private val bleScanResultsDataClass= Collections.synchronizedList(mutableListOf<BTDevice>())
   var stream: BluetoothStream? = null
-
+  val lock = Any() // Shared lock object
   private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -304,72 +307,97 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
   }
 
-  class Sd
   private val receiver = object : BroadcastReceiver() {
     @SuppressWarnings("MissingPermission")
     override fun onReceive(context: Context, intent: Intent) {
       val action: String? = intent.action
       when (action) {
         BluetoothDevice.ACTION_FOUND -> {
-          val device: BluetoothDevice =
-            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
-          val majorDeviceClass = device.bluetoothClass.majorDeviceClass
-          val deviceClass= device.bluetoothClass.deviceClass
-          Log.d("Discovery"," On Device Found \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
-          val deviceComparable: BluetoothDeviceComparable = BluetoothDeviceComparable(device)
-          val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResults.find { it.bluetoothDevice.address===deviceComparable.bluetoothDevice.address }
-          if(find==null){
-            Log.d("Discovery"," On Device Found where find ==null \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
-            this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
+          synchronized(lock){
+            val device: BluetoothDevice =
+              intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
+            val majorDeviceClass = device.bluetoothClass.majorDeviceClass
+            val deviceClass= device.bluetoothClass.deviceClass
+            val deviceComparable: BluetoothDeviceComparable = BluetoothDeviceComparable(device)
+            val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResults.find { it.bluetoothDevice==deviceComparable.bluetoothDevice }
+            if(find==null){
+              Log.d("Discovery"," On Device Found where find ==null \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
+              this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
+              this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.add(BTDevice(device.name,device.address,device.bluetoothClass.majorDeviceClass,device.bluetoothClass.deviceClass))
+            }
           }
+
 
         }
         BluetoothDevice.ACTION_CLASS_CHANGED->{
-          Log.d("Discovery","Device Action Class Changed ")
-          //find the BL device and then change
-          val device: BluetoothDevice =intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
-          Log.d("Discovery"," On Action Class Changed \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
-          val deviceComparable:BluetoothDeviceComparable= BluetoothDeviceComparable(device)
-          if(device.bluetoothClass.majorDeviceClass!=7936 || device.bluetoothClass.deviceClass!=7936) {
-            Log.d("Discovery","on Action Class Changed \n Passed if statement \n" +
-              " Device Info \n" +
-              " Name:${device.name} \n" +
-              " Address:${device.address} \n" +
-              " MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n" +
-              " Device Class ${device.bluetoothClass.deviceClass}")
-            for(bleDevice in bleScanResults){
-              if(bleDevice.bluetoothDevice.address==device.address){
-                this@SunmiExternalPrinterReactNativeModule.bleScanResults.remove(bleDevice)
-              }
+          synchronized(lock){
+            Log.d("Discovery","Device Action Class Changed ")
+            //find the BL device and then change
+            val device: BluetoothDevice =intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
+            val deviceComparable:BluetoothDeviceComparable= BluetoothDeviceComparable(device)
+            if(device.name.contains("Cloud")){
+              Log.d("Discovery","On Action Class Changed Before entering if statement \n" +
+                " Device Info \n" +
+                " Name:${device.name} \n" +
+                " Address:${device.address} \n" +
+                " MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n" +
+                " Device Class ${device.bluetoothClass.deviceClass} ")
             }
-           val result= this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
-            Log.d("Discovery","on Action Class Changed : Changed Adding Scan Result ${result}")
+
+            if(device.bluetoothClass.majorDeviceClass!=7936 || device.bluetoothClass.deviceClass!=7936) {
+
+              Log.d("Discovery","on Action Class Changed \n Passed if statement \n" +
+                " Device Info \n" +
+                " Name:${device.name} \n" +
+                " Address:${device.address} \n" +
+                " MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n" +
+                " Device Class ${device.bluetoothClass.deviceClass}")
+              val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResults.find { it.bluetoothDevice==deviceComparable.bluetoothDevice }
+              val findDataClass=this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.find{it.address==device.address}
+              if(findDataClass!=null){
+                val result=this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.remove(findDataClass)
+                Log.d("Discovery","on Action Class Changed : Changed Remove Scan Data Class Result ${result}")
+              }
+              if(find!=null){
+                val result=this@SunmiExternalPrinterReactNativeModule.bleScanResults.remove(find)
+                Log.d("Discovery","on Action Class Changed : Changed Remove Scan Result ${result}")
+              }
+              val result= this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
+              this@SunmiExternalPrinterReactNativeModule.bleScanResultsClassChanged.add(deviceComparable)
+              val resultDataClass=this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.add(
+                BTDevice(device.name,device.address,device.bluetoothClass.majorDeviceClass,device.bluetoothClass.deviceClass)
+              )
+              Log.d("Discovery","on Action Class Changed : Changed Adding Scan Result ${result}")
+              Log.d("Discovery","on Action Class Changed : Changed Adding Scan Result Data Class ${result}")
+
+            }
 
           }
-          Log.d("Discovery", "on Action Class Changed Results:")
-         this@SunmiExternalPrinterReactNativeModule.bleScanResults.forEach{
-            Log.d("Discovery","on Action Class Changed: Devices After Something Changed  \n" +
-              " Device Info \n" +
-              " Name:${it.bluetoothDevice.name} \n" +
-              " Address:${it.bluetoothDevice.address} \n" +
-              " MajorDeviceClass: ${it.bluetoothDevice.bluetoothClass.majorDeviceClass}\n" +
-              " Device Class ${it.bluetoothDevice.bluetoothClass.deviceClass}")
           }
 
-        }
         BluetoothAdapter.ACTION_DISCOVERY_FINISHED-> {
+synchronized(lock){
+  val result: WritableMap = Helper.SetBLDevicestoWriteableArray(
+    this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass,
+    this@SunmiExternalPrinterReactNativeModule.reactApplicationContext,
+    this@SunmiExternalPrinterReactNativeModule.currentActivity!!
+  )
+  Log.d("Discovery","Discovery Finished")
+  this@SunmiExternalPrinterReactNativeModule.bleScanResults.forEach{it->
+    Log.d("Discovery"," On Discovery Finished \n Device Info \n Name:${it.bluetoothDevice.name} \n Address:${it.bluetoothDevice.address} \n MajorDeviceClass: ${it.bluetoothDevice.bluetoothClass.majorDeviceClass}\n Device Class ${it.bluetoothDevice.bluetoothClass.deviceClass}")
+  }
+  this@SunmiExternalPrinterReactNativeModule.bleScanResultsClassChanged.forEach{it->
+    Log.d("Discovery"," On Discovery Finished Class Changed \n Device Info \n Name:${it.bluetoothDevice.name} \n Address:${it.bluetoothDevice.address} \n MajorDeviceClass: ${it.bluetoothDevice.bluetoothClass.majorDeviceClass}\n Device Class ${it.bluetoothDevice.bluetoothClass.deviceClass}")
+  }
+  this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.forEach{it->
+    Log.d("Discovery"," On Discovery Finished Data Class Changed \n Device Info \n Name:${it.name} \n Address:${it.address} \n MajorDeviceClass: ${it.majorDeviceClass}\n Device Class ${it.deviceClass}")
+  }
+  Log.d("Discovery","On Discovery Finished Size of BleScanResult ${bleScanResults.size}, and size of ${bleScanResultsDataClass.size}")
 
-          val result: WritableMap = Helper.SetBLDevicestoWriteableArray(
-            bleScanResults,
-            this@SunmiExternalPrinterReactNativeModule.reactApplicationContext,
-            this@SunmiExternalPrinterReactNativeModule.currentActivity!!
-          )
-          Log.d("Discovery","Discovery Finished")
-          bleScanResults.forEach{it->
-            Log.d("Discovery"," On Discovery Finished \n Device Info \n Name:${it.bluetoothDevice.name} \n Address:${it.bluetoothDevice.address} \n MajorDeviceClass: ${it.bluetoothDevice.bluetoothClass.majorDeviceClass}\n Device Class ${it.bluetoothDevice.bluetoothClass.deviceClass}")
-          }
+  this@SunmiExternalPrinterReactNativeModule.promise!!.resolve(result)
 
-          this@SunmiExternalPrinterReactNativeModule.promise!!.resolve(result)
+}
+
         }
 
       }
@@ -379,16 +407,17 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   @SuppressLint("MissingPermission")
   @ReactMethod
   private fun scanBLDevice(promise: Promise) {
+    bleScanResults.clear()
+    Log.d("Size:","${bleScanResults.size}")
     this.promise = promise
     if (Helper.checkBluetoothScanPermission(this.reactApplicationContext, this.currentActivity!!)) {
       Thread {
-
-
           val filter = IntentFilter()
           filter.addAction(BluetoothDevice.ACTION_FOUND)
           filter.addAction(BluetoothDevice.ACTION_CLASS_CHANGED)
           filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
           this.reactApplicationContext.registerReceiver(receiver, filter)
+
           bluetoothAdapter?.startDiscovery()
           Log.d("Printer Module", " Bluetooth Discovery Started")
 
