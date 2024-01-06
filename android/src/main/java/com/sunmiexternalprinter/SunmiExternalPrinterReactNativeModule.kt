@@ -317,7 +317,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             val majorDeviceClass = device.bluetoothClass.majorDeviceClass
             val deviceClass= device.bluetoothClass.deviceClass
             val deviceComparable: BluetoothDeviceComparable = BluetoothDeviceComparable(device)
-          this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
+              this@SunmiExternalPrinterReactNativeModule.bleScanResults.add(deviceComparable)
             val find=  this@SunmiExternalPrinterReactNativeModule.bleScanResultsDataClass.find { it.address==deviceComparable.bluetoothDevice.address }
             if(find==null){
               Log.d("Discovery"," On Device Found where find ==null \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
@@ -395,7 +395,9 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   @ReactMethod
   private fun scanBLDevice(promise: Promise) {
     bleScanResults.clear()
+    bleScanResultsDataClass.clear()
     Log.d("Size:","${bleScanResults.size}")
+    Log.d("Size:","${bleScanResultsDataClass.size}")
     this.promise = promise
     if (Helper.checkBluetoothScanPermission(this.reactApplicationContext, this.currentActivity!!)) {
       Thread {
@@ -425,7 +427,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
       Thread {
         try {
           println("Here Inside the try Thread ")
+          Log.d("Printing","BL Device nameoraddress ${nameOraddress}")
           val blDevice = Helper.findBLDevice(nameOraddress, bluetoothAdapter!!, bleScanResults)!!
+
+          Log.d("Printing","BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}")
           if(stream!=null){
             stream!!.closeSocket()
           }

@@ -90,30 +90,34 @@ class Helper {
     fun findBLDevice(nameOraddress: String,bluetoothAdapter:BluetoothAdapter,blescanResults: SortedSet<BluetoothDeviceComparable>): BluetoothDevice? {
       try{
         val pairedDevices = bluetoothAdapter.bondedDevices
+        val isMacAdress= Helper.isMacAddress(nameOraddress);
         val pairedDevice= pairedDevices.find {
-          if (Helper.isMacAddress(nameOraddress)) {
-            if (nameOraddress == it.address) {
+          if (isMacAdress && nameOraddress==it.address) {
+              Log.d("Helper","Find BL Device by address in pairedDevices ${nameOraddress}")
               return it
-            }
-            if (it.name == nameOraddress) return it
-          }
 
-          return it
+          }
+          if(nameOraddress==it.name){
+            Log.d("Helper","Find BL Device in pairedDevices by name ${nameOraddress}")
+            return it
+          }
+          return null
         }
         val foundDevice:BluetoothDeviceComparable?=blescanResults.find {
-          if(Helper.isMacAddress(nameOraddress)){
+          if(isMacAdress){
             if(nameOraddress==it.bluetoothDevice.address){
               return it.bluetoothDevice
             }
           }
           if(it.bluetoothDevice.name==nameOraddress) return it.bluetoothDevice
 
-          return it.bluetoothDevice
+          return null
         }
         if(pairedDevices!==null){
           return pairedDevice
         }
-        return foundDevice!!.bluetoothDevice}
+        return foundDevice!!.bluetoothDevice
+      }
       catch(e:Error){
         Log.e("Error findBL","BluetoothDevice Not Found")
         throw Exception("Bluetooth Device with the name or address ${nameOraddress} Not Found")
