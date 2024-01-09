@@ -19,6 +19,7 @@ import {
   EscPosImageWithTCPConnectionBitImageWrapper,
   EscPosImageWithTCPConnectionGraphicsImageWrapper,
   EscPosImageWithTCPConnectionRasterBitImageWrapper,
+  getPairedDevices,
   openDrawer,
   printImageByBluetooth,
   scanBLDevice,
@@ -248,6 +249,40 @@ function App(): JSX.Element {
                 console.log(results);
                 console.log(results.filtered_result);
                 setListofBlDevices(results.filtered_result);
+                setShowFlatListBT(true);
+                setShowFlatListNetwork(false);
+                setListofDevices([]);
+              }
+            }}
+          />
+          <Button
+            title="getPairedDevices"
+            onPress={async () => {
+              const requestBLPermissions = async () => {
+                const res = await PermissionsAndroid.request(
+                  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION!!
+                );
+                await PermissionsAndroid.requestMultiple([
+                  PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN!!,
+                  PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT!!,
+                ]);
+                console.log(res);
+              };
+              await requestBLPermissions();
+              const granted = await PermissionsAndroid.request(
+                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN!!,
+                {
+                  title: 'Android Scan Permission',
+                  message: 'Scan Bluetooth Permission',
+                  buttonNeutral: 'A ask Me Later',
+                  buttonNegative: 'Cancel',
+                  buttonPositive: 'OK',
+                }
+              );
+              if (granted) {
+                const results = await getPairedDevices();
+                console.log(results);
+                setListofBlDevices(results);
                 setShowFlatListBT(true);
                 setShowFlatListNetwork(false);
                 setListofDevices([]);

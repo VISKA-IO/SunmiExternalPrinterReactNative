@@ -452,6 +452,21 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
 
     }
+  @SuppressLint("MissingPermission")
+  @ReactMethod
+  private fun getPairedDevices(promise:Promise
+  ) {
+    try{
+    this.promise =promise
+    println("Here Inside the function in android  ")
+    val pairedDevices:Set<BluetoothDevice> = bluetoothAdapter!!.bondedDevices
+    val results=Helper.setBluetoothDevicetoWritableArray(pairedDevices.toMutableList())
+    promise.resolve(results)
+    }catch(e:Exception){
+      promise.reject(e.toString())
+    }
+  }
+
 
 
   companion object {

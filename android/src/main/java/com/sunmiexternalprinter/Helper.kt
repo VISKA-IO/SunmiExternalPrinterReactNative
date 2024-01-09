@@ -45,25 +45,25 @@ class Helper {
       return true
 
     }
-    fun SetBLDevicestoWriteableArray(bleDevices:MutableList<BTDevice>,context:Context,activity: Activity): WritableMap {
+    fun SetBLDevicestoWriteableArray(blDevices:MutableList<BTDevice>,context:Context,activity: Activity): WritableMap {
       val resultUnFiltered: WritableArray = Arguments.createArray()
       val resultFiltered:WritableArray= Arguments.createArray()
       var deviceMap: WritableMap = Arguments.createMap()
       var mapResult:WritableMap= Arguments.createMap()
 
       if(this.checkBluetoothConnectPermission(context,activity)) {
-        for (bleDevice in bleDevices) {
-          deviceMap.putString("name",bleDevice.name)
-          deviceMap.putString("address",bleDevice.address)
+        for (blDevice in blDevices) {
+          deviceMap.putString("name",blDevice.name)
+          deviceMap.putString("address",blDevice.address)
           resultUnFiltered.pushMap(deviceMap)
           deviceMap= Arguments.createMap()
         }
-        for (bleDevice in bleDevices) {
-          Log.d("Helper","device filtered beforee if statement ${bleDevice.name}")
-          if(bleDevice.majorDeviceClass==1536 || bleDevice.deviceClass==1572){
-            Log.d("Helper","device filtered ${bleDevice.name}")
-            deviceMap.putString("name",bleDevice.name)
-            deviceMap.putString("address",bleDevice.address)
+        for (blDevice in blDevices) {
+          Log.d("Helper","device filtered beforee if statement ${blDevice.name}")
+          if(blDevice.majorDeviceClass==1536 || blDevice.deviceClass==1572){
+            Log.d("Helper","device filtered ${blDevice.name}")
+            deviceMap.putString("name",blDevice.name)
+            deviceMap.putString("address",blDevice.address)
             resultFiltered.pushMap(deviceMap)
             deviceMap= Arguments.createMap()
           }
@@ -74,6 +74,18 @@ class Helper {
       mapResult.putArray("unfiltered_result", resultUnFiltered)
       return mapResult
 
+    }
+    @SuppressLint("MissingPermission")
+    fun setBluetoothDevicetoWritableArray(pairedDevices:MutableList<BluetoothDevice>):WritableArray{
+      val results: WritableArray = Arguments.createArray()
+      var deviceMap: WritableMap = Arguments.createMap()
+      for(blDevice in pairedDevices){
+        deviceMap.putString("name",blDevice.name)
+        deviceMap.putString("address",blDevice.address)
+        results.pushMap(deviceMap)
+        deviceMap=Arguments.createMap()
+      }
+      return results
     }
 
     fun isMacAddress(input: String?): Boolean {
