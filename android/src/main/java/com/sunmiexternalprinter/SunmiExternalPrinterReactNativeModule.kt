@@ -47,10 +47,30 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   private val bleScanResultsClassChanged= mutableListOf<BluetoothDeviceComparable>()
   private val bleScanResultsDataClass= mutableListOf<BTDevice>()
   var stream: BluetoothStream? = null
+  private var receiverDisconnectedBluetoothDeviceReceiver:BroadcastReceiver=object : BroadcastReceiver() {
+    @SuppressLint("MissingPermission")
+    override fun onReceive(context: Context?, intent: Intent?) {
+      val action:String?= intent?.action
+      when (action){
+        BluetoothDevice.ACTION_ACL_DISCONNECTED->{
+          val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
+          Log.d("Disconnected"," On Device Found where find ==null \n Device Info \n Name:${device.name} \n Address:${device.address} \n MajorDeviceClass: ${device.bluetoothClass.majorDeviceClass}\n Device Class ${device.bluetoothClass.deviceClass}")
+        }
+      }
+    }
   private fun sendEvent(reactContext: ReactContext, eventName: String, params: WritableMap?) {
     reactContext
       .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
       .emit(eventName, params)
+  }
+
+  init {
+
+    val filter = IntentFilter()
+  filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+
+
+    }
   }
 
   private val resolveListener = object : NsdManager.ResolveListener {
