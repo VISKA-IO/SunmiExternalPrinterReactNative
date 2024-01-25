@@ -446,41 +446,54 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   @SuppressLint("MissingPermission")
   @ReactMethod
   private fun printImageByBluetooth(
-    nameOraddress: String,
+    address: String,
     base64Image: String,
     addresspromise: Promise
   ) {
     this.promise = addresspromise
     println("Here Inside the function in android  ")
-    val pairedDevices:Set<BluetoothDevice> = bluetoothAdapter!!.bondedDevices
-      Thread {
-        try {
-          println("Here Inside the try Thread ")
-          Log.d("Printing","BL Device nameoraddress ${nameOraddress}")
-          val blDevice = Helper.findBLDevice(nameOraddress, bluetoothAdapter!!, bleScanResults)!!
-
-          Log.d("Printing","BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}")
-          if(stream!=null){
-            stream!!.closeSocket()
-          }
-          stream = BluetoothStream(blDevice, this.promise!!)
-          val escpos = EscPos(stream)
-          val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
-          val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-          val scaledBitmap =
-            Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
-          val algorithm = BitonalOrderedDither()
-          val imageWrapper = RasterBitImageWrapper()
-          val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-          escpos.write(imageWrapper, escposImage).feed(5).cut(EscPos.CutMode.FULL).close()
-        } catch (e: java.lang.Exception) {
-          e.printStackTrace()
-          promise?.reject("Error", e.toString())
-        }
-      }.start()
+    Thread {
+      try {
+        println("Here Inside the try Thread ")
+        Log.d("Printing", "BL Device address ${address}")
+        println("This is bluetoothAdapter $bluetoothAdapter")
+        println("This is bluetoothScanResults $bleScanResults")
+        val blDevice = Helper.findBLDevice(address, bluetoothAdapter!!, bleScanResults)!!
+        println("This is blDevice ${blDevice}")
+        Log.d(
+          "Printing",
+          "BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}"
+        )
+        stream = BluetoothStream(blDevice, this.promise!!)
+        val escpos = EscPos(stream)
+        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+        val scaledBitmap =
+          Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
+        val algorithm = BitonalOrderedDither()
+        val imageWrapper = RasterBitImageWrapper()
+        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
+        escpos.write(imageWrapper, escposImage).feed(5).cut(EscPos.CutMode.FULL).close()
+      } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+        promise?.reject("Error", e.toString())
+      }
+    }.start()
 
 
     }
+  @SuppressLint("MissingPermission")
+  @ReactMethod
+  private fun closePrinterSocket(promise:Promise){
+    try{
+
+      stream!!.closeSocket()
+      promise.resolve("Socket close")
+    }catch(e:Error){
+      promise.reject(e)
+    }
+  }
+  
   @SuppressLint("MissingPermission")
   @ReactMethod
   private fun getPairedDevices(promise:Promise

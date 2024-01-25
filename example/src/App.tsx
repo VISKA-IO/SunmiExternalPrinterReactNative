@@ -19,6 +19,7 @@ import {
   EscPosImageWithTCPConnectionBitImageWrapper,
   EscPosImageWithTCPConnectionGraphicsImageWrapper,
   EscPosImageWithTCPConnectionRasterBitImageWrapper,
+  closePrinterSocket,
   getPairedDevices,
   openDrawer,
   printImageByBluetooth,
@@ -298,6 +299,12 @@ function App(): JSX.Element {
                 currPrinter!!,
                 base64Image
               );
+              setTimeout(async () => {
+                // await 2 seconds to close Socket so that printer cut command is able to be carried out
+
+                await closePrinterSocket();
+              }, 2000);
+
               console.log(result);
             }}
           />

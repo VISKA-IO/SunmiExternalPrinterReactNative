@@ -37,6 +37,7 @@ class BluetoothStream(private val device:BluetoothDevice, private val promise: P
         Log.d("Socket Connect","Socket Connect Successful")
         true
       }catch(error:Error){
+        mmSocket?.close()
         promise.reject("Error",error.toString())
         Log.e("Socket Connect","Error",error)
         false

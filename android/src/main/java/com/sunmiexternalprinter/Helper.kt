@@ -99,40 +99,26 @@ class Helper {
       return pattern.matcher(input).matches()
     }
     @SuppressLint("MissingPermission")
-    fun findBLDevice(nameOraddress: String,bluetoothAdapter:BluetoothAdapter,blescanResults: SortedSet<BluetoothDeviceComparable>): BluetoothDevice? {
-      try{
+    fun findBLDevice(address: String, bluetoothAdapter:BluetoothAdapter, blescanResults: SortedSet<BluetoothDeviceComparable>): BluetoothDevice? {
+      try {
+        println("Here in findBLDevice")
         val pairedDevices = bluetoothAdapter.bondedDevices
-        val isMacAdress= Helper.isMacAddress(nameOraddress);
-        val pairedDevice= pairedDevices.find {
-          if (isMacAdress && nameOraddress==it.address) {
-              Log.d("Helper","Find BL Device by address in pairedDevices ${nameOraddress}")
-              return it
-
-          }
-          if(nameOraddress==it.name){
-            Log.d("Helper","Find BL Device in pairedDevices by name ${nameOraddress}")
+        println("This is ${address}")
+        pairedDevices.forEach{
+          if( address == it.address){
             return it
           }
-          return null
         }
-        val foundDevice:BluetoothDeviceComparable?=blescanResults.find {
-          if(isMacAdress){
-            if(nameOraddress==it.bluetoothDevice.address){
-              return it.bluetoothDevice
-            }
-          }
-          if(it.bluetoothDevice.name==nameOraddress) return it.bluetoothDevice
-
-          return null
+        blescanResults.forEach{
+         if( address == it.bluetoothDevice.address){
+          return it.bluetoothDevice
+         }
         }
-        if(pairedDevices!==null){
-          return pairedDevice
-        }
-        return foundDevice!!.bluetoothDevice
+        return null
       }
       catch(e:Error){
         Log.e("Error findBL","BluetoothDevice Not Found")
-        throw Exception("Bluetooth Device with the name or address ${nameOraddress} Not Found")
+        throw Exception("Bluetooth Device with the name or address ${address} Not Found")
 
       }
     }

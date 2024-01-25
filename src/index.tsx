@@ -119,7 +119,7 @@ export const printImageByBluetooth = async (
 ) => {
   try {
     return await SunmiExternalPrinterReactNative.printImageByBluetooth(
-      device.name || device.address,
+      device.address,
       base64Image
     );
   } catch (error) {
@@ -127,6 +127,13 @@ export const printImageByBluetooth = async (
   }
 };
 
+export const closePrinterSocket = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.closePrinterSocket();
+  } catch (error) {
+    return error;
+  }
+};
 export const getPairedDevices = async () => {
   try {
     return await SunmiExternalPrinterReactNative.getPairedDevices();
