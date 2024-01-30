@@ -141,3 +141,12 @@ export const getPairedDevices = async () => {
     return error;
   }
 };
+export const openDrawerBluetooth = async (device: printerDevice) => {
+  try {
+    return await SunmiExternalPrinterReactNative.openDrawerBluetooth(
+      device.address
+    );
+  } catch (error) {
+    return error;
+  }
+};

@@ -486,14 +486,13 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   @ReactMethod
   private fun closePrinterSocket(promise:Promise){
     try{
-
       stream!!.closeSocket()
       promise.resolve("Socket close")
     }catch(e:Error){
       promise.reject(e)
     }
   }
-  
+
   @SuppressLint("MissingPermission")
   @ReactMethod
   private fun getPairedDevices(promise:Promise
@@ -507,6 +506,26 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }catch(e:Exception){
       promise.reject(e.toString())
     }
+  }
+
+
+  @ReactMethod
+  fun openDrawerBluetooth(macAddress: String, promise: Promise) {
+    this.promise = promise
+    Thread {
+      try {
+        val blDevice = Helper.findBLDevice(macAddress, bluetoothAdapter!!, bleScanResults)!!
+        stream = BluetoothStream(blDevice, this.promise!!)
+        val escpos = EscPos(stream)
+        escpos.write(27).write(112).write(0).write(25).write(250);
+        escpos.write(27).write(0).write(-56).write(-56)
+        escpos.close()
+        promise.resolve(true)
+      } catch (e: Exception) {
+        promise.reject("Error", e.toString())
+      }
+    }.start()
+
   }
 
 
