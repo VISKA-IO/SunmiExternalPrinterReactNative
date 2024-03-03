@@ -41,7 +41,7 @@ function App(): JSX.Element {
   const [blDevices, setListofBlDevices] = useState<printerDevice[]>([]);
   const [showFlatListNetwork, setShowFlatListNetwork] = useState<boolean>(true);
   const [showFlatListBT, setShowFlatListBT] = useState<boolean>(false);
-
+  const check = 'check';
   const Item2 = ({ item, onPress, backgroundColor, textColor }: any) => (
     <TouchableOpacity
       onPress={onPress}
