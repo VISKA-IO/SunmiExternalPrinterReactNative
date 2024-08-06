@@ -2,9 +2,7 @@ package com.sunmiexternalprinter
 
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
 import android.bluetooth.BluetoothSocket
-import android.content.Context
 import android.util.Log
 import com.facebook.react.bridge.Promise
 import java.io.OutputStream
@@ -71,6 +69,10 @@ class BluetoothStream(private val device:BluetoothDevice, private val promise: P
         threadPrint!!.start()
 
     }
+
+  fun setCustomUncaughtException(uncaughtException: Thread.UncaughtExceptionHandler?) {
+    threadPrint!!.uncaughtExceptionHandler = uncaughtException
+  }
     fun closeSocket() {
         mmSocket!!.close()
         // ... Close the BluetoothStream and any other cleanup ...

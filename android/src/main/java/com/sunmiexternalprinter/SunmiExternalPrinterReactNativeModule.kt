@@ -1,6 +1,4 @@
 package com.sunmiexternalprinter
-
-
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -27,7 +25,6 @@ import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.content.WebViewContent
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
-import java.util.Collections
 import java.util.SortedSet
 import java.util.TreeSet
 
@@ -187,6 +184,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
         val stream = TcpIpOutputStream(ipAddress, port.toInt())
+        stream.setUncaughtException { t, e ->
+          promise.reject("Error", e.toString())
+          e.printStackTrace()
+        }
 
         val escpos = EscPos(stream)
         val algorithm = BitonalOrderedDither()
@@ -465,6 +466,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           "BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}"
         )
         stream = BluetoothStream(blDevice, this.promise!!)
+        stream!!.setCustomUncaughtException { _, e ->
+          promise!!.reject("Error", e.toString())
+          e.printStackTrace()
+        }
         val escpos = EscPos(stream)
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
@@ -516,6 +521,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
       try {
         val blDevice = Helper.findBLDevice(macAddress, bluetoothAdapter!!, bleScanResults)!!
         stream = BluetoothStream(blDevice, this.promise!!)
+        stream!!.setCustomUncaughtException { t, e ->
+          promise.reject("Error", e.toString())
+          e.printStackTrace()
+        }
         val escpos = EscPos(stream)
         escpos.write(27).write(112).write(0).write(25).write(250);
         escpos.write(27).write(0).write(-56).write(-56)
@@ -534,5 +543,3 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     const val NAME = "SunmiExternalPrinterReactNative"
   }
 }
-
-

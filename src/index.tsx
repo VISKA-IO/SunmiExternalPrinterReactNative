@@ -35,22 +35,14 @@ export const EscPosImageWithTCPConnectionRasterBitImageWrapper = async (
       port
     );
   } catch (error) {
-    return error;
+    throw error;
   }
 };
-export const startNetworkDiscovery = async () => {
+export const startNetworkDiscovery = async (duration: number) => {
   try {
-    return await SunmiExternalPrinterReactNative.startDiscovery();
+    return await SunmiExternalPrinterReactNative.startDiscovery(duration);
   } catch (error) {
-    return error;
-  }
-};
-
-export const stopNetworkDiscovery = async () => {
-  try {
-    return await SunmiExternalPrinterReactNative.stopDiscovery();
-  } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -66,7 +58,7 @@ export const EscPosImageWithTCPConnectionBitImageWrapper = async (
       port
     );
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -82,7 +74,7 @@ export const EscPosImageWithTCPConnectionGraphicsImageWrapper = async (
       port
     );
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -93,7 +85,7 @@ export const convertHTMLtoBase64 = async (html: string, width: number) => {
       width
     );
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -101,7 +93,7 @@ export const openDrawer = async (ipAddress: string, port: string) => {
   try {
     return await SunmiExternalPrinterReactNative.openDrawer(ipAddress, port);
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -109,7 +101,7 @@ export const scanBLDevice = async () => {
   try {
     return await SunmiExternalPrinterReactNative.scanBLDevice();
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -123,7 +115,7 @@ export const printImageByBluetooth = async (
       base64Image
     );
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 
@@ -131,14 +123,14 @@ export const closePrinterSocket = async () => {
   try {
     return await SunmiExternalPrinterReactNative.closePrinterSocket();
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 export const getPairedDevices = async () => {
   try {
     return await SunmiExternalPrinterReactNative.getPairedDevices();
   } catch (error) {
-    return error;
+    throw error;
   }
 };
 export const openDrawerBluetooth = async (device: printerDevice) => {
@@ -147,6 +139,6 @@ export const openDrawerBluetooth = async (device: printerDevice) => {
       device.address
     );
   } catch (error) {
-    return error;
+    throw error;
   }
 };
