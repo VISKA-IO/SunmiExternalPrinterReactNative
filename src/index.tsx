@@ -23,6 +23,14 @@ export function multiply(a: number, b: number): Promise<number> {
   return SunmiExternalPrinterReactNative.multiply(a, b);
 }
 
+export const stopNetworkDiscovery = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.stopDiscovery();
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const EscPosImageWithTCPConnectionRasterBitImageWrapper = async (
   base64Image: string,
   ipAddress: string,
