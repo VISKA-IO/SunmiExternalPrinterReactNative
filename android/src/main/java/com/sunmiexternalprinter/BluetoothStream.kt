@@ -65,7 +65,7 @@ class BluetoothStream(private val device:BluetoothDevice, private val promise: P
           }
         }
         threadPrint = Thread(printRunnable)
-        threadPrint!!.setUncaughtExceptionHandler(uncaughtException)
+      threadPrint!!.uncaughtExceptionHandler = uncaughtException
         threadPrint!!.start()
 
     }
