@@ -29,7 +29,7 @@ import java.util.SortedSet
 import java.util.TreeSet
 
 
-class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext),LifecycleEventListener {
   private val SCAN_PERIOD: Long = 10000
   private var promise: Promise? = null
   private var nsdManager: NsdManager? = null
@@ -76,6 +76,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     val filter = IntentFilter()
     filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
     this.reactApplicationContext.registerReceiver(receiverDisconnectedBluetoothDeviceReceiver, filter)
+    this.reactApplicationContext.addLifecycleEventListener(this);
 
     }
 
@@ -541,5 +542,20 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
   companion object {
     const val NAME = "SunmiExternalPrinterReactNative"
+  }
+
+  override fun onHostDestroy() {
+    val payload = Arguments.createMap().apply {
+      putString("destroy", "true")
+    }
+    sendEvent(this.reactApplicationContext,"onDestroy",payload)
+  }
+
+  override fun onHostPause() {
+    TODO("Not yet implemented")
+  }
+
+  override fun onHostResume() {
+    TODO("Not yet implemented")
   }
 }
