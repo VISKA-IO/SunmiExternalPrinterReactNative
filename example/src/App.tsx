@@ -1,3 +1,4 @@
+/* eslint-disable react-native/no-inline-styles */
 import { base64Image } from '../base64image';
 import * as React from 'react';
 
@@ -22,6 +23,8 @@ import {
   closePrinterSocket,
   getPairedDevices,
   openDrawer,
+  printBLCut,
+  printBLFeed,
   printImageByBluetooth,
   scanBLDevice,
   startNetworkDiscovery,
@@ -141,7 +144,7 @@ function App(): JSX.Element {
           <Button
             title="Start Network Discovery"
             onPress={async () => {
-              const check = await startNetworkDiscovery(10000);
+              const check = await startNetworkDiscovery();
               console.log(check);
             }}
           />
@@ -217,7 +220,9 @@ function App(): JSX.Element {
                 }
               );
               if (granted) {
+                console.log('In granted');
                 const results = await scanBLDevice();
+                console.log('Passed Results');
                 console.log(results);
                 console.log(results.filtered_result);
                 setListofBlDevices(results.filtered_result);
@@ -270,6 +275,22 @@ function App(): JSX.Element {
                 currPrinter!!,
                 base64Image
               );
+
+              setTimeout(async () => {
+                // await 2 seconds to close Socket so that printer cut command is able to be carried out
+
+                await closePrinterSocket();
+              }, 2000);
+
+              console.log(result);
+            }}
+          />
+          <Button
+            title="cutByBluetooth"
+            onPress={async () => {
+              console.log('Button Here');
+              const result = await printBLCut(currPrinter!!);
+
               setTimeout(async () => {
                 // await 2 seconds to close Socket so that printer cut command is able to be carried out
 
