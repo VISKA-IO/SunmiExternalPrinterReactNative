@@ -112,7 +112,24 @@ export const scanBLDevice = async () => {
     throw error;
   }
 };
-
+export const printBLCut = async (device: printerDevice) => {
+  try {
+    return await SunmiExternalPrinterReactNative.printCutByBluetooth(
+      device.address
+    );
+  } catch (error) {
+    throw error;
+  }
+};
+export const printBLFeed = async (device: printerDevice) => {
+  try {
+    return await SunmiExternalPrinterReactNative.printBluetoothFeed(
+      device.address
+    );
+  } catch (error) {
+    throw error;
+  }
+};
 export const printImageByBluetooth = async (
   device: printerDevice,
   base64Image: string
@@ -146,6 +163,13 @@ export const openDrawerBluetooth = async (device: printerDevice) => {
     return await SunmiExternalPrinterReactNative.openDrawerBluetooth(
       device.address
     );
+  } catch (error) {
+    throw error;
+  }
+};
+export const stopRunningService = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.stopRunningService();
   } catch (error) {
     throw error;
   }

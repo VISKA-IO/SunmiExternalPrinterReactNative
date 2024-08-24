@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.github.anastaciocintra.escpos.EscPos
+import com.github.anastaciocintra.escpos.EscPos.CutMode
 import com.github.anastaciocintra.escpos.image.*
 import com.github.anastaciocintra.output.TcpIpOutputStream
 import com.izettle.html2bitmap.Html2Bitmap
@@ -29,7 +30,7 @@ import java.util.SortedSet
 import java.util.TreeSet
 
 
-class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext),LifecycleEventListener {
+class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
   private val SCAN_PERIOD: Long = 10000
   private var promise: Promise? = null
   private var nsdManager: NsdManager? = null
@@ -76,7 +77,6 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     val filter = IntentFilter()
     filter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
     this.reactApplicationContext.registerReceiver(receiverDisconnectedBluetoothDeviceReceiver, filter)
-    this.reactApplicationContext.addLifecycleEventListener(this);
 
     }
 
@@ -490,6 +490,42 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
   @SuppressLint("MissingPermission")
   @ReactMethod
+  private fun printCutByBluetooth(
+    address: String,
+    addresspromise: Promise
+  ) {
+    this.promise = addresspromise
+    println("Here Inside the function in android  ")
+    Thread {
+      try {
+        println("Here Inside the try Thread ")
+        Log.d("Printing", "BL Device address ${address}")
+        println("This is bluetoothAdapter $bluetoothAdapter")
+        println("This is bluetoothScanResults $bleScanResults")
+        val blDevice = Helper.findBLDevice(address, bluetoothAdapter!!, bleScanResults)!!
+        println("This is blDevice ${blDevice}")
+        Log.d(
+          "Printing",
+          "BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}"
+        )
+        stream = BluetoothStream(blDevice, this.promise!!)
+        stream!!.setCustomUncaughtException { _, e ->
+          promise!!.reject("Error", e.toString())
+          e.printStackTrace()
+        }
+        val escpos = EscPos(stream)
+        escpos.cut(CutMode.FULL)
+        escpos.close()
+      } catch (e: java.lang.Exception) {
+        e.printStackTrace()
+        promise?.reject("Error", e.toString())
+      }
+    }.start()
+
+
+  }
+  @SuppressLint("MissingPermission")
+  @ReactMethod
   private fun closePrinterSocket(promise:Promise){
     try{
       stream!!.closeSocket()
@@ -542,20 +578,5 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
   companion object {
     const val NAME = "SunmiExternalPrinterReactNative"
-  }
-
-  override fun onHostDestroy() {
-    val payload = Arguments.createMap().apply {
-      putString("destroy", "true")
-    }
-    sendEvent(this.reactApplicationContext,"onDestroy",payload)
-  }
-
-  override fun onHostPause() {
-    TODO("Not yet implemented")
-  }
-
-  override fun onHostResume() {
-    TODO("Not yet implemented")
   }
 }
