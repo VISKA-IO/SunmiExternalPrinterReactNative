@@ -175,7 +175,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     base64Image: String,
     ipAddress: String,
     port: String,
-    cut:String
+    cut:String,
     promise: Promise
   ) {
     this.promise = promise
@@ -202,7 +202,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         if(cut=="PARTIAL"){
-            escpos.feed(5).cut(EscPos.CutMode.PARTIAL)
+            escpos.feed(5).cut(EscPos.CutMode.PART)
         }
         else{
             escpos.feed(5).cut(EscPos.CutMode.FULL)
@@ -223,6 +223,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     base64Image: String,
     ipAddress: String,
     port: String,
+    cut:String,
     promise: Promise
   ) {
     this.promise = promise
@@ -244,7 +245,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         if(cut=="PARTIAL"){
-            escpos.feed(5).cut(EscPos.CutMode.PARTIAL)
+            escpos.feed(5).cut(EscPos.CutMode.PART)
         }
         else{
             escpos.feed(5).cut(EscPos.CutMode.FULL)
@@ -266,6 +267,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     base64Image: String,
     ipAddress: String,
     port: String,
+    cut:String,
     promise: Promise
   ) {
     this.promise = promise
@@ -287,7 +289,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         if(cut=="PARTIAL"){
-            escpos.feed(5).cut(EscPos.CutMode.PARTIAL)
+            escpos.feed(5).cut(EscPos.CutMode.PART)
         }
         else{
             escpos.feed(5).cut(EscPos.CutMode.FULL)
