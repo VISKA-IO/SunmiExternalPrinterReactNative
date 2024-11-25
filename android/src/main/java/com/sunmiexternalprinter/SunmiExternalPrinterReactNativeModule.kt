@@ -175,6 +175,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     base64Image: String,
     ipAddress: String,
     port: String,
+    cut:String
     promise: Promise
   ) {
     this.promise = promise
@@ -200,7 +201,13 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           imageWrapper,
           BitonalThreshold()
         )
-        escpos.feed(5).cut(EscPos.CutMode.FULL)
+        if(cut=="PARTIAL"){
+            escpos.feed(5).cut(EscPos.CutMode.PARTIAL)
+        }
+        else{
+            escpos.feed(5).cut(EscPos.CutMode.FULL)
+        }
+       
         escpos.close()
         promise.resolve("Print Successfully")
       } catch (e: java.lang.Exception) {
@@ -236,7 +243,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           imageWrapper,
           BitonalThreshold()
         )
-        escpos.cut(EscPos.CutMode.FULL)
+        if(cut=="PARTIAL"){
+            escpos.feed(5).cut(EscPos.CutMode.PARTIAL)
+        }
+        else{
+            escpos.feed(5).cut(EscPos.CutMode.FULL)
+        }
         escpos.close()
         promise.resolve("Print Successfully")
 
@@ -274,7 +286,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           imageWrapper,
           BitonalThreshold()
         )
-        escpos.cut(EscPos.CutMode.FULL)
+        if(cut=="PARTIAL"){
+            escpos.feed(5).cut(EscPos.CutMode.PARTIAL)
+        }
+        else{
+            escpos.feed(5).cut(EscPos.CutMode.FULL)
+        }
         escpos.close()
         promise.resolve("Print Successfully")
 

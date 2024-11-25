@@ -34,13 +34,15 @@ export const stopNetworkDiscovery = async () => {
 export const EscPosImageWithTCPConnectionRasterBitImageWrapper = async (
   base64Image: string,
   ipAddress: string,
-  port: string
+  port: string,
+  cut:'PARTIAL'|'FULL'='FULL'
 ) => {
   try {
     return await SunmiExternalPrinterReactNative.printImageWithTCPRasterBitImageWrapper(
       base64Image,
       ipAddress,
-      port
+      port,
+      cut
     );
   } catch (error) {
     throw error;
@@ -57,13 +59,15 @@ export const startNetworkDiscovery = async () => {
 export const EscPosImageWithTCPConnectionBitImageWrapper = async (
   base64Image: string,
   ipAddress: string,
-  port: string
+  port: string,
+  cut:'PARTIAL'|'FULL'='FULL'
 ) => {
   try {
     return await SunmiExternalPrinterReactNative.printImageWithTCPBitImageWrapper(
       base64Image,
       ipAddress,
-      port
+      port,
+      cut,
     );
   } catch (error) {
     throw error;
@@ -73,13 +77,15 @@ export const EscPosImageWithTCPConnectionBitImageWrapper = async (
 export const EscPosImageWithTCPConnectionGraphicsImageWrapper = async (
   base64Image: string,
   ipAddress: string,
-  port: string
+  port: string,
+  cut:'PARTIAL'|'FULL'='FULL'
 ) => {
   try {
     return await SunmiExternalPrinterReactNative.printImageWithTCPGraphicsImageWrapper(
       base64Image,
       ipAddress,
-      port
+      port,
+      cut
     );
   } catch (error) {
     throw error;
