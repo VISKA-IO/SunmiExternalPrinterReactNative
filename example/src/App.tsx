@@ -113,7 +113,8 @@ function App(): JSX.Element {
                 await EscPosImageWithTCPConnectionGraphicsImageWrapper(
                   base64Image,
                   ipAddress,
-                  port
+                  port,
+                  "PARTIAL"
                 );
               console.log(Print);
             }}
@@ -124,7 +125,8 @@ function App(): JSX.Element {
               const Print = await EscPosImageWithTCPConnectionBitImageWrapper(
                 base64Image,
                 ipAddress,
-                port
+                port,
+                           "PARTIAL"
               );
               console.log(Print);
             }}
@@ -136,8 +138,10 @@ function App(): JSX.Element {
                 await EscPosImageWithTCPConnectionRasterBitImageWrapper(
                   base64Image,
                   '192.168.1.1',
-                  '9100'
+                  '9100',
+                  "PARTIAL"
                 );
+
               console.log(Print);
             }}
           />
