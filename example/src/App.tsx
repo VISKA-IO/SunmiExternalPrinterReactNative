@@ -281,13 +281,17 @@ function App(): JSX.Element {
               );
               const base64 = await convertHTMLtoBase64(html.data, 576);
               console.log('This is base64', base64);
-              const result = await printImageByBluetooth(currPrinter!!, base64);
+              const result = await printImageByBluetooth(
+                currPrinter!!,
+                base64,
+                'PARTIAL'
+              );
 
-              setTimeout(async () => {
-                // await 2 seconds to close Socket so that printer cut command is able to be carried out
+              // setTimeout(async () => {
+              //   // await 2 seconds to close Socket so that printer cut command is able to be carried out
 
-                await closePrinterSocket();
-              }, 2000);
+              //   await closePrinterSocket();
+              // }, 4000);
 
               console.log(result);
             }}

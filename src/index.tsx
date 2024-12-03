@@ -149,6 +149,7 @@ export const printImageByBluetooth = async (
   cut: 'PARTIAL' | 'FULL' = 'FULL'
 ) => {
   try {
+    console.log('cut', cut);
     return await SunmiExternalPrinterReactNative.printImageByBluetooth(
       device.address,
       base64Image,

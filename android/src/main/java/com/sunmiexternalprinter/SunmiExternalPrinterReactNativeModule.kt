@@ -484,6 +484,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     cut:String,
     addresspromise: Promise
   ) {
+    println("This is cut ${cut}")
     this.promise = addresspromise
     println("Here Inside the function in android  ")
     Thread {
@@ -498,8 +499,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           "Printing",
           "BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}"
         )
-        stream = BluetoothStream(blDevice, this.promise!!)
-        stream!!.setCustomUncaughtException { _, e ->
+        val stream = BluetoothStream(blDevice, this.promise!!)
+        stream.setCustomUncaughtException { _, e ->
           promise!!.reject("Error", e.toString())
           e.printStackTrace()
         }
@@ -518,7 +519,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         if(cut=="PARTIAL"){
-          escpos.feed(5).cut(EscPos.CutMode.PART)
+          escpos.feed(5).cut(EscPos.CutMode.PART).close()
         }
         else{
           escpos.feed(5).cut(EscPos.CutMode.FULL).close()
