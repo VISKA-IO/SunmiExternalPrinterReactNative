@@ -481,6 +481,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   private fun printImageByBluetooth(
     address: String,
     base64Image: String,
+    cut:String,
     addresspromise: Promise
   ) {
     this.promise = addresspromise
@@ -516,7 +517,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           imageWrapper,
           BitonalThreshold()
         )
-        escpos.feed(5).cut(EscPos.CutMode.FULL).close()
+        if(cut=="PARTIAL"){
+          escpos.feed(5).cut(EscPos.CutMode.PART)
+        }
+        else{
+          escpos.feed(5).cut(EscPos.CutMode.FULL).close()
+        }
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
         promise?.reject("Error", e.toString())
