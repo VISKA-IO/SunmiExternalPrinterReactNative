@@ -1,5 +1,6 @@
 package com.sunmiexternalprinter
 import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -170,6 +171,17 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
   }
 
+  @Suppress("DEPRECATION")
+  @ReactMethod
+  fun getListofServiceNames(promise:Promise) {
+    val activityManager:ActivityManager = reactApplicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    val services:WritableArray= Arguments.createArray()
+    for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+      services.pushString(service.service.className)
+    }
+    promise.resolve(services)
+  }
+
   @ReactMethod
   fun printImageWithTCPRasterBitImageWrapper(
     base64Image: String,
@@ -207,7 +219,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         else{
             escpos.feed(5).cut(EscPos.CutMode.FULL)
         }
-       
+
         escpos.close()
         promise.resolve("Print Successfully")
       } catch (e: java.lang.Exception) {
@@ -498,7 +510,13 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val algorithm = BitonalOrderedDither()
         val imageWrapper = RasterBitImageWrapper()
         val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
-        escpos.write(imageWrapper, escposImage).feed(5).cut(EscPos.CutMode.FULL).close()
+        ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
+          escpos,
+          CoffeeImageAndroidImpl(scaledBitmap),
+          imageWrapper,
+          BitonalThreshold()
+        )
+        escpos.feed(5).cut(EscPos.CutMode.FULL).close()
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
         promise?.reject("Error", e.toString())

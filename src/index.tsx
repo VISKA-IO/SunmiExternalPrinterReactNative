@@ -110,6 +110,13 @@ export const openDrawer = async (ipAddress: string, port: string) => {
     throw error;
   }
 };
+export const getListofServiceNames = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.getListofServiceNames();
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const scanBLDevice = async () => {
   try {
