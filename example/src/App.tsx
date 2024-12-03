@@ -1,7 +1,7 @@
 /* eslint-disable react-native/no-inline-styles */
 import { base64Image } from '../base64image';
 import * as React from 'react';
-
+import axios from 'axios';
 import {
   StyleSheet,
   View,
@@ -21,6 +21,7 @@ import {
   EscPosImageWithTCPConnectionGraphicsImageWrapper,
   EscPosImageWithTCPConnectionRasterBitImageWrapper,
   closePrinterSocket,
+  getListofServiceNames,
   getPairedDevices,
   openDrawer,
   printBLCut,
@@ -32,6 +33,7 @@ import {
 import { useState } from 'react';
 import { convertHTMLtoBase64 } from '../../src';
 import type { printerDevice } from 'src/printerDevice';
+import { html } from '../exampleBigOrder';
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [ipAddress, setIpAddress] = useState<string>('');
@@ -114,7 +116,7 @@ function App(): JSX.Element {
                   base64Image,
                   ipAddress,
                   port,
-                  "PARTIAL"
+                  'PARTIAL'
                 );
               console.log(Print);
             }}
@@ -126,7 +128,7 @@ function App(): JSX.Element {
                 base64Image,
                 ipAddress,
                 port,
-                           "PARTIAL"
+                'PARTIAL'
               );
               console.log(Print);
             }}
@@ -139,7 +141,7 @@ function App(): JSX.Element {
                   base64Image,
                   '192.168.1.1',
                   '9100',
-                  "PARTIAL"
+                  'PARTIAL'
                 );
 
               console.log(Print);
@@ -274,11 +276,12 @@ function App(): JSX.Element {
           <Button
             title="printImageByBluetooth"
             onPress={async () => {
-              console.log('Button Here');
-              const result = await printImageByBluetooth(
-                currPrinter!!,
-                base64Image
+              const html: any = await axios.get(
+                'https://raw.githubusercontent.com/Dwikavindra/receipt-testing/main/index.html'
               );
+              const base64 = await convertHTMLtoBase64(html.data, 576);
+              console.log('This is base64', base64);
+              const result = await printImageByBluetooth(currPrinter!!, base64);
 
               setTimeout(async () => {
                 // await 2 seconds to close Socket so that printer cut command is able to be carried out
@@ -286,6 +289,14 @@ function App(): JSX.Element {
                 await closePrinterSocket();
               }, 2000);
 
+              console.log(result);
+            }}
+          />
+
+          <Button
+            title="Get Services Names "
+            onPress={async () => {
+              const result = await getListofServiceNames();
               console.log(result);
             }}
           />
