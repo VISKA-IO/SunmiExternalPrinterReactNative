@@ -485,22 +485,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     cut:String,
     addresspromise: Promise
   ) {
-    println("This is cut ${cut}")
     this.promise = addresspromise
-    println("Here Inside the function in android  ")
     Thread {
       try {
-        println("Here Inside the try Thread ")
-        Log.d("Printing", "BL Device address ${address}")
-        println("This is bluetoothAdapter $bluetoothAdapter")
-        println("This is bluetoothScanResults $bleScanResults")
         val blDevice = Helper.findBLDevice(address, bluetoothAdapter!!, bleScanResults)!!
-        println("This is blDevice ${blDevice}")
-        Log.d(
-          "Printing",
-          "BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}"
-        )
-
           stream = BluetoothStream(blDevice, this.promise!!)
           stream!!.openSocketThread()
           stream!!.setCustomUncaughtException { _, e ->
@@ -508,7 +496,6 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             e.printStackTrace()
           }
         escpos = EscPos(stream)
-
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
         val scaledBitmap =

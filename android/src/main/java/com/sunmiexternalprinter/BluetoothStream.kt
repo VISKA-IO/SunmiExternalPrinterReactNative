@@ -59,10 +59,9 @@ class  BluetoothStream(private val device:BluetoothDevice, private val promise: 
           }
           mmOutStream.write(mmBuffer, 0, n)
           mmOutStream.flush()
-          Log.d("WhileStream","Stream output is not closed")
+
         }
         pipedInputStream!!.close()
-        Log.d("WhileStream","Stream output is  closed")
         promise?.resolve("Print Successfully")
       }
     }
