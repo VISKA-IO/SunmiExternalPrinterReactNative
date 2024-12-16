@@ -40,6 +40,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     BluetoothManager::class.java
   )!!
   val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
+  var  escpos:EscPos?=null
   private var scanning = false
   private val handler = Handler(Looper.getMainLooper())
   private val bleScanResults:SortedSet<BluetoothDeviceComparable> = TreeSet()
@@ -499,30 +500,31 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           "Printing",
           "BL Device Found \n Name: ${blDevice.name} \n Address:${blDevice.address} \nMajor Device Class: ${blDevice.bluetoothClass.majorDeviceClass} \n Device Class:${blDevice.bluetoothClass.deviceClass}"
         )
-        val stream = BluetoothStream(blDevice, this.promise!!)
-        stream.setCustomUncaughtException { _, e ->
-          promise!!.reject("Error", e.toString())
-          e.printStackTrace()
-        }
-        val escpos = EscPos(stream)
+
+          stream = BluetoothStream(blDevice, this.promise!!)
+          stream!!.openSocketThread()
+          stream!!.setCustomUncaughtException { _, e ->
+            promise!!.reject("Error", e.toString())
+            e.printStackTrace()
+          }
+        escpos = EscPos(stream)
+
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
         val scaledBitmap =
           Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
-        val algorithm = BitonalOrderedDither()
         val imageWrapper = RasterBitImageWrapper()
-        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
         ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
-          escpos,
+          escpos!!,
           CoffeeImageAndroidImpl(scaledBitmap),
           imageWrapper,
           BitonalThreshold()
         )
         if(cut=="PARTIAL"){
-          escpos.feed(5).cut(EscPos.CutMode.PART).close()
+          escpos!!.feed(5).cut(EscPos.CutMode.PART).close()
         }
         else{
-          escpos.feed(5).cut(EscPos.CutMode.FULL).close()
+          escpos!!.feed(5).cut(EscPos.CutMode.FULL).close()
         }
       } catch (e: java.lang.Exception) {
         e.printStackTrace()

@@ -14,7 +14,7 @@ import java.util.logging.Logger
 
 
 @SuppressLint("MissingPermission")
-class BluetoothStream(private val device:BluetoothDevice, private val promise: Promise): PipedOutputStream() {
+class  BluetoothStream(private val device:BluetoothDevice, private val promise: Promise): PipedOutputStream() {
     private var pipedInputStream: PipedInputStream? = null
     private val MY_UUID= "00001101-0000-1000-8000-00805F9B34FB"
     private var threadPrint: Thread? = null
@@ -43,32 +43,34 @@ class BluetoothStream(private val device:BluetoothDevice, private val promise: P
       }
     }
 
-    init{
-        mmSocket= device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(MY_UUID))
-        pipedInputStream = PipedInputStream()
-        super.connect(pipedInputStream)
-        val printRunnable=Runnable{
-        //connect to BlDevice first
-          if(checkConnect()){
-            println("Here")
-              val mmOutStream: OutputStream = mmSocket!!.outputStream
-              val mmBuffer: ByteArray = ByteArray(1024)
-              while (true) {
-                  val n = pipedInputStream!!.read(mmBuffer)
-                  if (n < 0) {
-                      break;}
-                  mmOutStream.write(mmBuffer, 0, n)
-                  mmOutStream.flush()
-              }
-              pipedInputStream!!.close()
-              promise?.resolve("Print Successfully")
+  public fun openSocketThread(){
+    mmSocket= device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(MY_UUID))
+    pipedInputStream = PipedInputStream()
+    super.connect(pipedInputStream)
+    val printRunnable=Runnable{
+      //connect to BlDevice first
+      if(checkConnect()){
+        val mmOutStream: OutputStream = mmSocket!!.outputStream
+        val mmBuffer= ByteArray(1024)
+        while (true) {
+          val n = pipedInputStream!!.read(mmBuffer)
+          if(n<0){
+            break;
           }
+          mmOutStream.write(mmBuffer, 0, n)
+          mmOutStream.flush()
+          Log.d("WhileStream","Stream output is not closed")
         }
-        threadPrint = Thread(printRunnable)
-      threadPrint!!.uncaughtExceptionHandler = uncaughtException
-        threadPrint!!.start()
-
+        pipedInputStream!!.close()
+        Log.d("WhileStream","Stream output is  closed")
+        promise?.resolve("Print Successfully")
+      }
     }
+    threadPrint = Thread(printRunnable)
+    threadPrint!!.uncaughtExceptionHandler = uncaughtException
+    threadPrint!!.start()
+
+  }
 
   fun setCustomUncaughtException(uncaughtException: Thread.UncaughtExceptionHandler?) {
     threadPrint!!.uncaughtExceptionHandler = uncaughtException
