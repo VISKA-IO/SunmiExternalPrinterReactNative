@@ -27,21 +27,21 @@ class  BluetoothStream(private val device:BluetoothDevice, private val promise: 
         }
 
     private fun checkConnect():Boolean{
-      return try {
-        if(!mmSocket!!.isConnected){
-          println("Not Connected to socket")
-          mmSocket?.connect()
-        }
-        Log.d("Socket Connect","Socket Connect Successful")
-        true
-      }catch(error:Error){
-        mmSocket?.close()
-        promise.reject("Error",error.toString())
-        Log.e("Socket Connect","Error",error)
-        false
-
+    return try {
+      if(!mmSocket!!.isConnected){
+        println("Not Connected to socket")
+        mmSocket?.connect()
       }
+      Log.d("Socket Connect","Socket Connect Successful")
+      true
+    }catch(error:Error){
+      mmSocket?.close()
+      promise.reject("Error",error.toString())
+      Log.e("Socket Connect","Error",error)
+      false
+
     }
+  }
 
   public fun openSocketThread(){
     mmSocket= device.createInsecureRfcommSocketToServiceRecord(UUID.fromString(MY_UUID))

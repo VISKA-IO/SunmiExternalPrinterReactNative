@@ -47,6 +47,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   private val bleScanResultsClassChanged= mutableListOf<BluetoothDeviceComparable>()
   private val bleScanResultsDataClass= mutableListOf<BTDevice>()
   var stream: BluetoothStream? = null
+  var tcpStream: com.sunmiexternalprinter.TcpIpOutputStream? = null
   private var receiverDisconnectedBluetoothDeviceReceiver:BroadcastReceiver=object : BroadcastReceiver() {
     @SuppressLint("MissingPermission")
     override fun onReceive(context: Context?, intent: Intent?) {
@@ -198,16 +199,13 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
-        val stream = TcpIpOutputStream(ipAddress, port.toInt())
-        stream.setUncaughtException { t, e ->
+        tcpStream = com.sunmiexternalprinter.TcpIpOutputStream(ipAddress,port.toInt())
+        tcpStream!!.setUncaughtException { t, e ->
           promise.reject("Error", e.toString())
           e.printStackTrace()
         }
-
-        val escpos = EscPos(stream)
-        val algorithm = BitonalOrderedDither()
+        val escpos = EscPos(tcpStream!!)
         val imageWrapper = RasterBitImageWrapper()
-        val escposImage = EscPosImage(CoffeeImageAndroidImpl(scaledBitmap), algorithm)
         ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
           escpos,
           CoffeeImageAndroidImpl(scaledBitmap),
@@ -566,6 +564,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }catch(e:Error){
       promise.reject(e)
     }
+  }
+
+  @SuppressLint("MissingPermission")
+  @ReactMethod
+  private fun closeTCPPrinterSocket(promise:Promise){
+      tcpStream!!.closeSocket(promise)
   }
 
   @SuppressLint("MissingPermission")

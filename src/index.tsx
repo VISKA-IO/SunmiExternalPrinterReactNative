@@ -190,3 +190,11 @@ export const stopRunningService = async () => {
     throw error;
   }
 };
+
+export const closeTCPPrinterSocket = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.closeTCPPrinterSocket();
+  } catch (error) {
+    throw error;
+  }
+};
