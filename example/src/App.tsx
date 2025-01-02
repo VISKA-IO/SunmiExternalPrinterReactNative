@@ -191,7 +191,6 @@ function App(): JSX.Element {
                   '</body>',
                 400
               );
-              console.log(Print);
             }}
           />
           <Button
@@ -276,10 +275,32 @@ function App(): JSX.Element {
           <Button
             title="printImageByBluetooth"
             onPress={async () => {
-              const html: any = await axios.get(
-                'https://raw.githubusercontent.com/Dwikavindra/receipt-testing/main/index.html'
-              );
-              const base64 = await convertHTMLtoBase64(html.data, 576);
+              const html = `
+              <!DOCTYPE html>
+              <html lang="en">
+              <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>QR Code Generator</title>
+              </head>
+              <body>
+                <div id="qrcode">
+                  <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+                  <script>
+                    new QRCode(document.getElementById('qrcode'), {
+                      text: 'http://jindo.dev.naver.com/collie',
+                      width: 128,
+                      height: 128,
+                      colorDark: '#000',
+                      colorLight: '#fff',
+                      correctLevel: QRCode.CorrectLevel.H
+                    });
+                  </script>
+                </div>
+              </body>
+              </html>
+              `;
+              const base64 = await convertHTMLtoBase64(html, 576);
               console.log('This is base64', base64);
               const sleep = async (duration: number) =>
                 new Promise((resolve) => setTimeout(resolve, duration));

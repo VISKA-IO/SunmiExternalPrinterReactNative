@@ -10,12 +10,14 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import android.util.Log
+import android.webkit.WebView
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
@@ -24,6 +26,7 @@ import com.github.anastaciocintra.escpos.EscPos.CutMode
 import com.github.anastaciocintra.escpos.image.*
 import com.github.anastaciocintra.output.TcpIpOutputStream
 import com.izettle.html2bitmap.Html2Bitmap
+import com.izettle.html2bitmap.Html2BitmapConfigurator
 import com.izettle.html2bitmap.content.WebViewContent
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
@@ -146,8 +149,14 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     this.promise = promise
     Thread {
       try {
+        val html2BitmapConfigurator: Html2BitmapConfigurator = object : Html2BitmapConfigurator() {
+          @SuppressLint("SetJavaScriptEnabled")
+          override fun configureWebView(webview: WebView) {
+            webview.settings.javaScriptEnabled=true
+          }
+        }
         val bitmap: Bitmap? =
-          Html2Bitmap.Builder().setContext(reactApplicationContext.applicationContext)
+          Html2Bitmap.Builder().setContext(reactApplicationContext.applicationContext).setConfigurator(html2BitmapConfigurator)
             .setContent(WebViewContent.html(htmlString)).setBitmapWidth(width)
             .build().bitmap
 //        val resizedBitmap = Bitmap.createScaledBitmap(
