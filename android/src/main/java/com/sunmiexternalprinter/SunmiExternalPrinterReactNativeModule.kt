@@ -208,7 +208,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
         val scaledBitmap = Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
-        tcpStream = com.sunmiexternalprinter.TcpIpOutputStream(ipAddress,port.toInt())
+        tcpStream = com.sunmiexternalprinter.TcpIpOutputStream(ipAddress,port.toInt(),promise)
         tcpStream!!.setUncaughtException { t, e ->
           promise.reject("Error", e.toString())
           e.printStackTrace()
@@ -227,9 +227,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         else{
             escpos.feed(5).cut(EscPos.CutMode.FULL)
         }
-
         escpos.close()
-        promise.resolve("Print Successfully")
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
         promise.reject("Error", e.toString())

@@ -21,7 +21,7 @@ import java.util.logging.Logger
  * be reused and the last command should be `close()`, after that,
  * you need to create another instance to send data to the printer.
  */
-class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 9100) :
+class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 9100,promise:Promise) :
   PipedOutputStream() {
   protected val pipedInputStream: PipedInputStream = PipedInputStream()
   protected val threadPrint: Thread
@@ -68,7 +68,9 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
             outputStream.write(buf, 0, n)
             outputStream.flush()
           }
+          promise.resolve(null)
       } catch (ex: Exception) {
+        promise.reject("Error from TCP IP",ex)
         throw RuntimeException(ex)
       }
     }
