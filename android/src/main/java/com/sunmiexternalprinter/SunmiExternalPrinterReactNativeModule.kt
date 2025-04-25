@@ -566,6 +566,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   @ReactMethod
   private fun closePrinterSocket(promise:Promise){
     try{
+
       stream!!.closeSocket()
       promise.resolve("Socket close")
     }catch(e:Error){
@@ -610,6 +611,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         escpos.write(27).write(112).write(0).write(25).write(250);
         escpos.write(27).write(0).write(-56).write(-56)
         escpos.close()
+
         promise.resolve(true)
       } catch (e: Exception) {
         promise.reject("Error", e.toString())

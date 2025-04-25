@@ -94,7 +94,8 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
 
   fun closeSocket(promise: Promise){
     try {
-      // process socket
+      socket!!.outputStream.close()
+      socket!!.inputStream.close()
       socket!!.close()
       promise.resolve(null)
     } catch (e:Exception ) {
@@ -102,3 +103,5 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
     }
 }
 }
+
+

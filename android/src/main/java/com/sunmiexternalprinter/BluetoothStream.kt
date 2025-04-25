@@ -61,8 +61,10 @@ class  BluetoothStream(private val device:BluetoothDevice, private val promise: 
           mmOutStream.flush()
 
         }
+
         pipedInputStream!!.close()
-        promise?.resolve("Print Successfully")
+
+        promise.resolve("Print Successfully")
       }
     }
     threadPrint = Thread(printRunnable)
@@ -75,6 +77,8 @@ class  BluetoothStream(private val device:BluetoothDevice, private val promise: 
     threadPrint!!.uncaughtExceptionHandler = uncaughtException
   }
     fun closeSocket() {
+        mmSocket!!.outputStream.close()
+        mmSocket!!.inputStream.close()
         mmSocket!!.close()
         // ... Close the BluetoothStream and any other cleanup ...
     }
