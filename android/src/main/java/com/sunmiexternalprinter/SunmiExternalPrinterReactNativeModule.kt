@@ -28,6 +28,8 @@ import com.github.anastaciocintra.output.TcpIpOutputStream
 import com.izettle.html2bitmap.Html2Bitmap
 import com.izettle.html2bitmap.Html2BitmapConfigurator
 import com.izettle.html2bitmap.content.WebViewContent
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Semaphore
 import java.io.ByteArrayOutputStream
 import java.net.InetAddress
 import java.util.SortedSet
@@ -49,6 +51,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   private val bleScanResults:SortedSet<BluetoothDeviceComparable> = TreeSet()
   private val bleScanResultsClassChanged= mutableListOf<BluetoothDeviceComparable>()
   private val bleScanResultsDataClass= mutableListOf<BTDevice>()
+  private val printingSemaphore = Semaphore(1)
   var stream: BluetoothStream? = null
   var tcpStream: com.sunmiexternalprinter.TcpIpOutputStream? = null
   private var receiverDisconnectedBluetoothDeviceReceiver:BroadcastReceiver=object : BroadcastReceiver() {
@@ -143,6 +146,29 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   override fun getName(): String {
     return NAME
   }
+
+
+
+  @ReactMethod
+  fun lockPrintingSemaphore(promise:Promise){
+    Thread{
+      runBlocking {
+        printingSemaphore.acquire()
+        promise.resolve(null)
+      }
+    }.start()
+  }
+
+  @ReactMethod
+  fun unlockPrintingSemaphore(promise:Promise){
+    Thread{
+      runBlocking {
+        printingSemaphore.release()
+        promise.resolve(null)
+      }
+    }.start()
+  }
+
 
   @ReactMethod
   fun convertHTMLtoBase64(htmlString: String, width: Int, promise: Promise) {
