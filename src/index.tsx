@@ -190,7 +190,12 @@ export const stopRunningService = async () => {
     throw error;
   }
 };
-
+export const lockPrintingSemaphore = async () => {
+  return await SunmiExternalPrinterReactNative.lockPrintinSemaphore();
+};
+export const unlockPrintingSemaphore = async () => {
+  return await SunmiExternalPrinterReactNative.unlockPrintingSemaphore();
+};
 export const closeTCPPrinterSocket = async () => {
   try {
     return await SunmiExternalPrinterReactNative.closeTCPPrinterSocket();
