@@ -191,7 +191,7 @@ export const stopRunningService = async () => {
   }
 };
 export const lockPrintingSemaphore = async () => {
-  return await SunmiExternalPrinterReactNative.lockPrintinSemaphore();
+  return await SunmiExternalPrinterReactNative.lockPrintingSemaphore();
 };
 export const unlockPrintingSemaphore = async () => {
   return await SunmiExternalPrinterReactNative.unlockPrintingSemaphore();
