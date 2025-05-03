@@ -132,7 +132,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
       override fun onServiceFound(p0: NsdServiceInfo?) {
         println("Found")
-        nsdManager?.resolveService(p0, resolveListener)
+        nsdManager?.resolveService(p0, ResolveListener(reactContext))
 
 
       }
