@@ -253,7 +253,6 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         else{
             escpos.feed(5).cut(EscPos.CutMode.FULL)
         }
-        escpos.close()
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
         promise.reject("Error", e.toString())
