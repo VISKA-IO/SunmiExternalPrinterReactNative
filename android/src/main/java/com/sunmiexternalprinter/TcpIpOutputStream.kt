@@ -68,12 +68,15 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
             outputStream.write(buf, 0, n)
             outputStream.flush()
           }
+          pipedInputStream.close()
           promise.resolve(null)
       } catch (ex: Exception) {
         promise.reject("Error from TCP IP",ex)
         throw RuntimeException(ex)
       }
     }
+
+
 
     threadPrint = Thread(runnablePrint)
     threadPrint.uncaughtExceptionHandler = uncaughtException
@@ -97,7 +100,6 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
       socket?.outputStream?.close()
       socket?.inputStream?.close()
       socket?.close()
-      super.close()
       promise.resolve(null)
     } catch (e:Exception ) {
       promise.reject("Error from closeSocket in TCPIPOutputStream",e)

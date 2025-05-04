@@ -248,10 +248,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           BitonalThreshold()
         )
         if(cut=="PARTIAL"){
-            escpos.feed(5).cut(EscPos.CutMode.PART)
+            escpos.feed(5).cut(EscPos.CutMode.PART).close()
         }
         else{
-            escpos.feed(5).cut(EscPos.CutMode.FULL)
+            escpos.feed(5).cut(EscPos.CutMode.FULL).close()
         }
       } catch (e: java.lang.Exception) {
         e.printStackTrace()
