@@ -69,7 +69,7 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
             outputStream.flush()
           }
           pipedInputStream.close()
-          promise.resolve(null)
+          promise.resolve("Printing Completed")
       } catch (ex: Exception) {
         promise.reject("Error from TCP IP",ex)
         throw RuntimeException(ex)
@@ -97,9 +97,9 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
 
   fun closeSocket(promise: Promise){
     try {
-      socket?.outputStream?.close()
-      socket?.inputStream?.close()
       socket?.close()
+//      socket?.inputStream?.close()
+//      socket?.close()
       promise.resolve(null)
     } catch (e:Exception ) {
       promise.reject("Error from closeSocket in TCPIPOutputStream",e)
