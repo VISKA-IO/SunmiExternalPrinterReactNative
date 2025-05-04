@@ -97,9 +97,8 @@ class TcpIpOutputStream @JvmOverloads constructor(host: String?, port: Int = 910
 
   fun closeSocket(promise: Promise){
     try {
+      // For TCP IP only need to close it once
       socket?.close()
-//      socket?.inputStream?.close()
-//      socket?.close()
       promise.resolve(null)
     } catch (e:Exception ) {
       promise.reject("Error from closeSocket in TCPIPOutputStream",e)

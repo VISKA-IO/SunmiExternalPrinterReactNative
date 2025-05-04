@@ -77,6 +77,8 @@ class  BluetoothStream(private val device:BluetoothDevice, private val promise: 
     threadPrint!!.uncaughtExceptionHandler = uncaughtException
   }
     fun closeSocket() {
+      // For bluetooth it's a bit different to TCP IP based on this now no more red timeout occurs
+      // https://stackoverflow.com/questions/18657427/ioexception-read-failed-socket-might-closed-bluetooth-on-android-4-3?rq=1
         mmSocket!!.outputStream.close()
         mmSocket!!.inputStream.close()
         mmSocket!!.close()
