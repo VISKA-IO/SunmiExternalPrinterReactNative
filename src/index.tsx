@@ -203,3 +203,11 @@ export const closeTCPPrinterSocket = async () => {
     throw error;
   }
 };
+
+export const searchUSBDevices = async () => {
+  try {
+    return await SunmiExternalPrinterReactNative.searchUSBDevices();
+  } catch (error) {
+    throw error;
+  }
+};

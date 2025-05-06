@@ -11,6 +11,7 @@ import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.hardware.usb.UsbManager
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.os.Handler
@@ -643,6 +644,24 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
       }
     }.start()
 
+  }
+
+  @SuppressLint("unused")
+  @ReactMethod
+  fun searchUsbDevices(promise:Promise){
+    try{
+      val manager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
+      val deviceList = manager.getDeviceList()
+      val writableMap=Arguments.createMap()
+      deviceList.values.forEach { usbDevice ->
+        writableMap.putString("name",usbDevice.deviceName)
+        writableMap.putString("productName",usbDevice.productName)
+        writableMap.putString("manufacturerName",usbDevice.manufacturerName)
+      }
+      promise.resolve(writableMap)
+    }catch (e:Exception) {
+      promise.reject("Error", e)
+    }
   }
 
 
