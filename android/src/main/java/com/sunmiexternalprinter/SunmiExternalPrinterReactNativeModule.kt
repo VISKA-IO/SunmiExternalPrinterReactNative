@@ -1,6 +1,7 @@
 package com.sunmiexternalprinter
 import android.annotation.SuppressLint
 import android.app.ActivityManager
+import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
@@ -10,15 +11,17 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Color
+import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import android.webkit.WebView
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
@@ -38,7 +41,6 @@ import java.util.TreeSet
 
 
 class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
-  private val SCAN_PERIOD: Long = 10000
   private var promise: Promise? = null
   private var nsdManager: NsdManager? = null
   val bluetoothManager: BluetoothManager = ContextCompat.getSystemService(
@@ -527,10 +529,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             e.printStackTrace()
           }
         escpos = EscPos(stream)
-        val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
-        val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-        val scaledBitmap =
-          Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
+          val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+          val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+          val scaledBitmap =
+            Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
         val imageWrapper = RasterBitImageWrapper()
         ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
           escpos!!,
@@ -646,19 +648,77 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
   }
 
+  @SuppressLint("unused", "UnspecifiedRegisterReceiverFlag", "InlinedApi")
+  @ReactMethod
+  fun printUSBDevice(productID:String,vendorId:String,base64String:String,cut:String,promise:Promise){
+    Thread{
+      try{
+        val manager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
+        val deviceList = manager.getDeviceList()
+        var selectedPrinter: UsbDevice?=null
+        deviceList.forEach{(key,usbDevice)->
+          if(usbDevice.vendorId==vendorId.toInt() && usbDevice.productId==productID.toInt()){
+            selectedPrinter=usbDevice
+          }
+        }
+        val intent=Intent(Constants.ACTION_USB_PERMISSION).apply {
+          putExtra("base64",base64String)
+          putExtra("cut",cut)
+        }
+        if(selectedPrinter!==null){
+          val permissionIntent: PendingIntent = PendingIntent.getBroadcast(
+            reactApplicationContext,
+            0,
+            intent,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+          )
+          val filter: IntentFilter = IntentFilter(Constants.ACTION_USB_PERMISSION)
+
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            reactApplicationContext.registerReceiver(
+              USBBroadcastReceiver(promise),
+              filter,
+              Context.RECEIVER_EXPORTED
+            )
+          }else{
+            reactApplicationContext.registerReceiver(
+              USBBroadcastReceiver(promise),
+              filter,
+            )
+          }
+          manager.requestPermission(selectedPrinter, permissionIntent)
+
+        }else{
+          throw Exception("USB Device not found")
+        }
+      }catch (e:Exception){
+        promise.reject("Error",e)
+      }
+    }.start()
+
+  }
+  @RequiresApi(Build.VERSION_CODES.M)
   @SuppressLint("unused")
   @ReactMethod
-  fun searchUsbDevices(promise:Promise){
+  fun searchUSBDevices(promise:Promise){
     try{
       val manager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
       val deviceList = manager.getDeviceList()
-      val writableMap=Arguments.createMap()
-      deviceList.values.forEach { usbDevice ->
+      val list= Arguments.createArray()
+      deviceList.forEach { (key,usbDevice) ->
+        val writableMap=Arguments.createMap()
+        writableMap.putString("id",key)
         writableMap.putString("name",usbDevice.deviceName)
         writableMap.putString("productName",usbDevice.productName)
         writableMap.putString("manufacturerName",usbDevice.manufacturerName)
+
+//        writableMap.putString("serialNumber",usbDevice.serialNumber)
+        writableMap.putString("vendorId", usbDevice.vendorId.toString())
+        writableMap.putString("version",usbDevice.version)
+        writableMap.putString("productId", usbDevice.productId.toString())
+        list.pushMap(writableMap)
       }
-      promise.resolve(writableMap)
+      promise.resolve(list)
     }catch (e:Exception) {
       promise.reject("Error", e)
     }

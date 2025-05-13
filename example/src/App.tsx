@@ -27,12 +27,14 @@ import {
   printBLCut,
   printBLFeed,
   printImageByBluetooth,
+  printUSBDevice,
   scanBLDevice,
+  searchUSBDevices,
   startNetworkDiscovery,
 } from 'sunmi-external-printer';
 import { useState } from 'react';
 import { convertHTMLtoBase64 } from '../../src';
-import type { printerDevice } from 'src/printerDevice';
+import type { printerDevice, usbPrinterDevice } from 'src/printerDevice';
 import { html } from '../exampleBigOrder';
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
@@ -40,10 +42,16 @@ function App(): JSX.Element {
   const [port, setPort] = useState<string>('');
   const [printerName, setPrinterName] = useState<string>('');
   const [devices, setListofDevices] = useState<ItemData[]>([]);
+  const [USBdevices, setListofUSBDevices] = useState<usbPrinterDevice[]>([]);
   const [currPrinter, setCurrPrinter] = useState<printerDevice | null>(null);
+  const [currUSBPrinter, setCurrUsbPrinter] = useState<usbPrinterDevice | null>(
+    null
+  );
   const [blDevices, setListofBlDevices] = useState<printerDevice[]>([]);
   const [showFlatListNetwork, setShowFlatListNetwork] = useState<boolean>(true);
   const [showFlatListBT, setShowFlatListBT] = useState<boolean>(false);
+  const [showFlatListUSB, setShowFlatListUSB] = useState<boolean>(false);
+
   const Item2 = ({ item, onPress, backgroundColor, textColor }: any) => (
     <TouchableOpacity
       onPress={onPress}
@@ -81,6 +89,24 @@ function App(): JSX.Element {
           setPort(item.printerPort);
           setPrinterName(item.printerName);
           setListofDevices([]);
+        }}
+        backgroundColor={backgroundColor}
+        textColor={'white'}
+      />
+    );
+  };
+
+  const renderItemUSB = ({ item }: { item: usbPrinterDevice }) => {
+    const backgroundColor =
+      item.name ===
+      (currUSBPrinter === null ? ' ' : (currUSBPrinter!!.name as string))
+        ? '#00008B'
+        : 'blue';
+    return (
+      <UsbItem
+        item={item}
+        onPress={async () => {
+          setCurrUsbPrinter(item);
         }}
         backgroundColor={backgroundColor}
         textColor={'white'}
@@ -131,6 +157,48 @@ function App(): JSX.Element {
                 'PARTIAL'
               );
               console.log(Print);
+            }}
+          />
+          <Button
+            title="Print with USB "
+            onPress={async () => {
+              try {
+                const html = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>QR Code Generator</title>
+                </head>
+                <body>
+                  <div id="qrcode">
+                    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+                    <script>
+                      new QRCode(document.getElementById('qrcode'), {
+                        text: 'http://jindo.dev.naver.com/collie',
+                        width: 128,
+                        height: 128,
+                        colorDark: '#000',
+                        colorLight: '#fff',
+                        correctLevel: QRCode.CorrectLevel.H
+                      });
+                    </script>
+                  </div>
+                </body>
+                </html>
+                `;
+                const base64 = await convertHTMLtoBase64(html, 576);
+                const printUSB = await printUSBDevice(
+                  currUSBPrinter!!.productId,
+                  currUSBPrinter!!.vendorId,
+                  base64,
+                  'FULL'
+                );
+                console.log('This is printUSB', printUSB);
+              } catch (error) {
+                console.log('This is error usbPrinting', error);
+              }
             }}
           />
           <Button
@@ -201,7 +269,33 @@ function App(): JSX.Element {
             }}
           />
           <Button
-            title="startBTDisovery"
+            title="startUSBDiscovery"
+            onPress={async () => {
+              console.log('In granted');
+              const results: usbPrinterDevice[] = await searchUSBDevices();
+
+              results.push({
+                id: 'check',
+                name: 'check',
+                productName: 'check',
+                manufacturerName: 'check',
+                // serialNumber: string;
+                vendorId: 'check',
+                version: 'check',
+                productId: 'check',
+              });
+
+              console.log('This is results USB', results);
+              setListofUSBDevices(results);
+              setShowFlatListBT(false);
+              setShowFlatListNetwork(false);
+              setShowFlatListUSB(true);
+              setListofDevices([]);
+              console.log('Passed here ');
+            }}
+          />
+          <Button
+            title="startBTDiscovery"
             onPress={async () => {
               const requestBLPermissions = async () => {
                 const res = await PermissionsAndroid.request(
@@ -231,8 +325,10 @@ function App(): JSX.Element {
                 console.log(results);
                 console.log(results.filtered_result);
                 setListofBlDevices(results.filtered_result);
-                setShowFlatListBT(true);
+                setShowFlatListBT(false);
                 setShowFlatListNetwork(false);
+                setShowFlatListUSB(true);
+                console.log('Passed here');
                 setListofDevices([]);
               }
             }}
@@ -358,9 +454,13 @@ function App(): JSX.Element {
             Current BTPrinter:{currPrinter == null ? ' ' : currPrinter.name}{' '}
             {currPrinter == null ? ' ' : currPrinter.address}
           </Text>
+          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
+            Current USB:{currUSBPrinter == null ? ' ' : currUSBPrinter.id}{' '}
+            {currUSBPrinter == null ? ' ' : currUSBPrinter?.name}
+          </Text>
         </View>
       </ScrollView>
-      <View style={{ borderWidth: 5, height: 300 }}>
+      <View style={{ height: 200 }}>
         {showFlatListBT && (
           <FlatList
             data={blDevices}
@@ -375,6 +475,13 @@ function App(): JSX.Element {
             renderItem={renderItem}
             keyExtractor={(item) => item.printerIPAddress}
             extraData={ipAddress}
+          />
+        )}
+        {showFlatListUSB && (
+          <FlatList
+            data={USBdevices}
+            renderItem={renderItemUSB}
+            keyExtractor={(item) => item.name}
           />
         )}
       </View>
@@ -404,6 +511,34 @@ const Item = ({ item, onPress, backgroundColor, textColor }: ItemProps) => (
     </Text>
     <Text style={[styles.title, { color: textColor }]}>{item.printerName}</Text>
     <Text style={[styles.title, { color: textColor }]}>{item.printerPort}</Text>
+  </TouchableOpacity>
+);
+
+const UsbItem = ({ item, onPress, backgroundColor, textColor }: any) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[styles.item, { backgroundColor }]}
+  >
+    <Text style={[styles.title, { color: textColor }]}>ID: {item.id}</Text>
+    <Text style={[styles.title, { color: textColor }]}>Name: {item.name}</Text>
+    <Text style={[styles.title, { color: textColor }]}>
+      Manufacturer Name:{item.manufacturerName}
+    </Text>
+    {/* <Text style={[styles.title, { color: textColor }]}>
+      Serial Number:{item.serialNumber}
+    </Text> */}
+    <Text style={[styles.title, { color: textColor }]}>
+      VendorID {item.vendorId}
+    </Text>
+    <Text style={[styles.title, { color: textColor }]}>
+      Version: {item.version}
+    </Text>
+    <Text style={[styles.title, { color: textColor }]}>
+      ProductId: {item.productId}
+    </Text>
+    <Text style={[styles.title, { color: textColor }]}>
+      ProductName: {item.productName}
+    </Text>
   </TouchableOpacity>
 );
 const styles = StyleSheet.create({
