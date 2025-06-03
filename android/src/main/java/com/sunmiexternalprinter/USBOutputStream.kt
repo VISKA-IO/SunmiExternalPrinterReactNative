@@ -1,5 +1,6 @@
 package com.sunmiexternalprinter
 
+import android.content.Context
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbDeviceConnection
 import android.hardware.usb.UsbEndpoint
@@ -16,7 +17,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 
-class USBOutputStream(private val usbEndpoint: UsbEndpoint, private val usbDevice: UsbDevice, private val usbManager: UsbManager, private val usbInterface: UsbInterface, private val promise: Promise):PipedOutputStream() {
+class USBOutputStream(private val usbEndpoint: UsbEndpoint, private val usbDevice: UsbDevice, private val usbManager: UsbManager, private val usbInterface: UsbInterface, private val context: Context, private val usbBroadcastReceiver:USBBroadcastReceiver, private val promise: Promise):PipedOutputStream() {
   private var pipedInputStream: PipedInputStream? = null
   private var usbConnection:UsbDeviceConnection?=null
   private var threadPrint: Thread? = null
@@ -50,14 +51,17 @@ class USBOutputStream(private val usbEndpoint: UsbEndpoint, private val usbDevic
 
         }
         usbConnection!!.close()
-        pipedInputStream!!.close()
 
+        pipedInputStream!!.close()
+        context.unregisterReceiver(usbBroadcastReceiver)
+        println("Passed unregisterReceiver")
         promise.resolve("Print Successfully")
       }
       threadPrint = Thread(printRunnable)
       threadPrint!!.uncaughtExceptionHandler = uncaughtException
       threadPrint!!.start()
     }catch (e:Exception){
+      context.unregisterReceiver(usbBroadcastReceiver)
       promise.reject("Error",e)
     }
 

@@ -668,7 +668,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         if(selectedPrinter!==null){
           val permissionIntent: PendingIntent = PendingIntent.getBroadcast(
             reactApplicationContext,
-            0,
+            System.currentTimeMillis().toInt(),
             intent,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
           )

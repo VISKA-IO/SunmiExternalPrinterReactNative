@@ -20,7 +20,7 @@ class USBBroadcastReceiver(val promise: Promise):BroadcastReceiver() {
       synchronized(this) {
         try{
           val usbDevice: UsbDevice? = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
-
+          println("Init USB service")
           if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
             val usbInterface = UsbDeviceHelper.findPrinterInterface(usbDevice)
             val usbEndpoint= UsbDeviceHelper.findEndpointIn(usbInterface)
@@ -32,7 +32,7 @@ class USBBroadcastReceiver(val promise: Promise):BroadcastReceiver() {
             val scaledBitmap =
               Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
             val imageWrapper = RasterBitImageWrapper()
-            val stream = USBOutputStream(usbEndpoint!!,usbDevice!!,usbManager,usbInterface!!,promise)
+            val stream = USBOutputStream(usbEndpoint!!,usbDevice!!,usbManager,usbInterface!!,context,this,promise)
             stream.openSocketThread()
             stream.setCustomUncaughtException { _, e ->
               promise!!.reject("Error", e.toString())
@@ -55,6 +55,7 @@ class USBBroadcastReceiver(val promise: Promise):BroadcastReceiver() {
             throw Exception("Permission not granted")
           }
         }catch (e:Exception){
+          context.unregisterReceiver(this)
           promise.reject("Error",e)
         }
 

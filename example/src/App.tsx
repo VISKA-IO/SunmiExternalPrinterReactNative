@@ -163,6 +163,7 @@ function App(): JSX.Element {
             title="Print with USB "
             onPress={async () => {
               try {
+                console.log('triggered');
                 const html = `
                 <!DOCTYPE html>
                 <html lang="en">
@@ -184,6 +185,39 @@ function App(): JSX.Element {
                         correctLevel: QRCode.CorrectLevel.H
                       });
                     </script>
+                  </div>
+                </body>
+                </html>
+                `;
+                const base64 = await convertHTMLtoBase64(html, 576);
+                const printUSB = await printUSBDevice(
+                  currUSBPrinter!!.productId,
+                  currUSBPrinter!!.vendorId,
+                  base64,
+                  'FULL'
+                );
+                console.log('This is printUSB', printUSB);
+              } catch (error) {
+                console.log('This is error usbPrinting', error);
+              }
+            }}
+          />
+          <Button
+            title="Print with USB 2 "
+            onPress={async () => {
+              try {
+                console.log('triggered');
+                const html = `
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>QR Code Generator</title>
+                </head>
+                <body>
+                  <div>
+                   Hello
                   </div>
                 </body>
                 </html>
