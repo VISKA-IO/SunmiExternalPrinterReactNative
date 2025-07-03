@@ -662,6 +662,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
           }
         }
         val intent=Intent(Constants.ACTION_USB_PERMISSION).apply {
+          putExtra("job","printBase64")
           putExtra("base64",base64String)
           putExtra("cut",cut)
         }
@@ -673,13 +674,62 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
           )
           val filter: IntentFilter = IntentFilter(Constants.ACTION_USB_PERMISSION)
-
           if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             reactApplicationContext.registerReceiver(
               USBBroadcastReceiver(promise),
               filter,
               Context.RECEIVER_EXPORTED
             )
+
+          }else{
+            reactApplicationContext.registerReceiver(
+              USBBroadcastReceiver(promise),
+              filter,
+            )
+          }
+          manager.requestPermission(selectedPrinter, permissionIntent)
+
+        }else{
+          throw Exception("USB Device not found")
+        }
+      }catch (e:Exception){
+        promise.reject("Error",e)
+      }
+    }.start()
+
+  }
+
+  @SuppressLint("unused", "UnspecifiedRegisterReceiverFlag", "InlinedApi")
+  @ReactMethod
+  fun openDrawerUSB(productID:String,vendorId:String,promise:Promise){
+    Thread{
+      try{
+        val manager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
+        val deviceList = manager.getDeviceList()
+        var selectedPrinter: UsbDevice?=null
+        deviceList.forEach{(key,usbDevice)->
+          if(usbDevice.vendorId==vendorId.toInt() && usbDevice.productId==productID.toInt()){
+            selectedPrinter=usbDevice
+          }
+        }
+        val intent=Intent(Constants.ACTION_USB_PERMISSION).apply {
+           putExtra("job","openDrawer")
+        }
+        if(selectedPrinter!==null){
+          val permissionIntent: PendingIntent = PendingIntent.getBroadcast(
+            reactApplicationContext,
+            System.currentTimeMillis().toInt(),
+            intent,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
+          )
+          val filter: IntentFilter = IntentFilter(Constants.ACTION_USB_PERMISSION)
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            reactApplicationContext.registerReceiver(
+              USBBroadcastReceiver(promise),
+              filter,
+              Context.RECEIVER_EXPORTED
+            )
+
           }else{
             reactApplicationContext.registerReceiver(
               USBBroadcastReceiver(promise),
@@ -711,8 +761,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         writableMap.putString("name",usbDevice.deviceName)
         writableMap.putString("productName",usbDevice.productName)
         writableMap.putString("manufacturerName",usbDevice.manufacturerName)
-
 //        writableMap.putString("serialNumber",usbDevice.serialNumber)
+        usbDevice.serialNumber
         writableMap.putString("vendorId", usbDevice.vendorId.toString())
         writableMap.putString("version",usbDevice.version)
         writableMap.putString("productId", usbDevice.productId.toString())

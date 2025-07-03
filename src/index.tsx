@@ -229,3 +229,13 @@ export const printUSBDevice = async (
     throw error;
   }
 };
+export const openDrawerUSB = async (productID: string, vendorID: string) => {
+  try {
+    return await SunmiExternalPrinterReactNative.openDrawerUSB(
+      productID,
+      vendorID
+    );
+  } catch (error) {
+    throw error;
+  }
+};

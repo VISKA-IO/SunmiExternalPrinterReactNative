@@ -40,22 +40,29 @@ class USBOutputStream(private val usbEndpoint: UsbEndpoint, private val usbDevic
 
       super.connect(pipedInputStream)
       val printRunnable=Runnable{
-        //connect to BlDevice first
-        val mmBuffer= ByteArray(1024)
-        while (true) {
-          val n = pipedInputStream!!.read(mmBuffer)
-          if(n<0){
-            break;
+        try{
+          val mmBuffer= ByteArray(1024)
+          while (true) {
+            val n = pipedInputStream!!.read(mmBuffer)
+            if(n<0){
+              break;
+            }
+            usbConnection!!.bulkTransfer(usbEndpoint,mmBuffer,0,n,0)
+
           }
-          usbConnection!!.bulkTransfer(usbEndpoint,mmBuffer,0,n,0)
-
+          println("Passed unregisterReceiver")
+          promise.resolve("Print Successfully")
+        }catch (e: Exception){
+          promise.reject("Error",e)
+        }finally {
+          usbConnection!!.close()
+          pipedInputStream!!.close()
+          context.unregisterReceiver(usbBroadcastReceiver)
         }
-        usbConnection!!.close()
 
-        pipedInputStream!!.close()
-        context.unregisterReceiver(usbBroadcastReceiver)
-        println("Passed unregisterReceiver")
-        promise.resolve("Print Successfully")
+
+
+
       }
       threadPrint = Thread(printRunnable)
       threadPrint!!.uncaughtExceptionHandler = uncaughtException

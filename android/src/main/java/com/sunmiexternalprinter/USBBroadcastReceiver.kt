@@ -25,31 +25,45 @@ class USBBroadcastReceiver(val promise: Promise):BroadcastReceiver() {
             val usbInterface = UsbDeviceHelper.findPrinterInterface(usbDevice)
             val usbEndpoint= UsbDeviceHelper.findEndpointIn(usbInterface)
             val usbManager = context.getSystemService(Context.USB_SERVICE) as UsbManager
-            val base64String=intent.getStringExtra("base64")
-            val cut=intent.getStringExtra("cut")
-            val encodedBase64 = Base64.decode(base64String, Base64.DEFAULT)
-            val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
-            val scaledBitmap =
-              Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
-            val imageWrapper = RasterBitImageWrapper()
-            val stream = USBOutputStream(usbEndpoint!!,usbDevice!!,usbManager,usbInterface!!,context,this,promise)
-            stream.openSocketThread()
-            stream.setCustomUncaughtException { _, e ->
-              promise!!.reject("Error", e.toString())
-              e.printStackTrace()
+            if(intent.getStringExtra("job")=="printBase64"){
+              val base64String=intent.getStringExtra("base64")
+              val cut=intent.getStringExtra("cut")
+              val encodedBase64 = Base64.decode(base64String, Base64.DEFAULT)
+              val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
+              val scaledBitmap =
+                Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
+              val imageWrapper = RasterBitImageWrapper()
+              val stream = USBOutputStream(usbEndpoint!!,usbDevice!!,usbManager,usbInterface!!,context,this,promise)
+              stream.openSocketThread()
+              stream.setCustomUncaughtException { _, e ->
+                promise.reject("Error", e.toString())
+                e.printStackTrace()
+              }
+              val escpos = EscPos(stream)
+              ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
+                escpos,
+                CoffeeImageAndroidImpl(scaledBitmap),
+                imageWrapper,
+                BitonalThreshold()
+              )
+              if(cut=="PARTIAL"){
+                escpos.feed(5).cut(EscPos.CutMode.PART).close()
+              }
+              else{
+                escpos.feed(5).cut(EscPos.CutMode.FULL).close()
+              }
             }
-            val escpos = EscPos(stream)
-            ImageHelper(scaledBitmap.width, scaledBitmap.height).write(
-              escpos,
-              CoffeeImageAndroidImpl(scaledBitmap),
-              imageWrapper,
-              BitonalThreshold()
-            )
-            if(cut=="PARTIAL"){
-              escpos.feed(5).cut(EscPos.CutMode.PART).close()
-            }
-            else{
-              escpos.feed(5).cut(EscPos.CutMode.FULL).close()
+            if(intent.getStringExtra("job")=="openDrawer"){
+              val stream = USBOutputStream(usbEndpoint!!,usbDevice!!,usbManager,usbInterface!!,context,this,promise)
+              stream.openSocketThread()
+              stream.setCustomUncaughtException { _, e ->
+                promise.reject("Error", e.toString())
+                e.printStackTrace()
+              }
+              val escpos = EscPos(stream)
+              escpos.write(27).write(112).write(0).write(25).write(250);
+              escpos.write(27).write(0).write(-56).write(-56)
+              escpos.close()
             }
           } else {
             throw Exception("Permission not granted")
