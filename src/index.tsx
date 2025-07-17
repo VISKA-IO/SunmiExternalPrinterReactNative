@@ -235,3 +235,5 @@ export const openDrawerUSB = async (productID: string, vendorID: string) => {
     throw error;
   }
 };
+
+export type { printerDevice, usbPrinterDevice };
