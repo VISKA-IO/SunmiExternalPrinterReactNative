@@ -19,10 +19,6 @@ const SunmiExternalPrinterReactNative =
         }
       );
 
-export function multiply(a: number, b: number): Promise<number> {
-  return SunmiExternalPrinterReactNative.multiply(a, b);
-}
-
 export const stopNetworkDiscovery = async () => {
   try {
     return await SunmiExternalPrinterReactNative.stopDiscovery();
