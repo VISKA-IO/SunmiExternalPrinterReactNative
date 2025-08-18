@@ -13,8 +13,35 @@ import com.github.anastaciocintra.escpos.EscPos
 import com.github.anastaciocintra.escpos.image.BitonalThreshold
 import com.github.anastaciocintra.escpos.image.RasterBitImageWrapper
 
+/**
+ * Broadcast receiver for handling USB device permission responses and operations.
+ * 
+ * This class processes USB permission grants from the Android system and executes
+ * the requested printer operations (printing or drawer control) once permission
+ * is obtained. It handles the complete USB communication workflow including
+ * interface claiming, endpoint discovery, and data transfer.
+ * 
+ * The receiver supports two main operations:
+ * - printBase64: Prints a Base64-encoded image to the USB printer
+ * - openDrawer: Sends drawer control commands to open a cash drawer
+ * 
+ * @param promise React Native promise for operation completion
+ * 
+ * @author Sunmi External Printer Team
+ * @since 1.0.0
+ */
 class USBBroadcastReceiver(val promise: Promise):BroadcastReceiver() {
 
+  /**
+   * Processes USB permission responses and executes requested operations.
+   * 
+   * This method is called when the system responds to USB permission requests.
+   * If permission is granted, it extracts the operation type from the intent
+   * and executes the appropriate printing or drawer control operation.
+   * 
+   * @param context Application context for system service access
+   * @param intent Intent containing permission response and operation details
+   */
   override fun onReceive(context: Context, intent: Intent) {
     if (Constants.ACTION_USB_PERMISSION == intent.action) {
       synchronized(this) {

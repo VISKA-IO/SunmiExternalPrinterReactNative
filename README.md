@@ -1,437 +1,414 @@
-# README
+# Sunmi External Printer
 
-# sunmi-external-printer
+[![npm version](https://badge.fury.io/js/sunmi-external-printer.svg)](https://badge.fury.io/js/sunmi-external-printer)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-❗❗❗❗Warning This Package only works for Android ❗❗❗❗
+> ⚠️ **Android Only**: This package only works on Android devices.
 
-A react native library for sunmi external printer. Only tested on Sunmi Cloud Printer NT311.
+A React Native library for printing with Sunmi external printers via TCP/IP, Bluetooth, and USB connections. Tested primarily on Sunmi Cloud Printer NT311.
+
+⚠️ **Important**: This library uses semaphore locking to prevent concurrent printing. Do not use `Promise.all()` for multiple print operations.
+
+## Features
+
+- 🖨️ **Multiple Connection Types**: TCP/IP, Bluetooth, and USB printing
+- 🖼️ **Image Printing**: Support for base64 encoded images with multiple rendering methods
+- 🔍 **Device Discovery**: Network and Bluetooth device scanning
+- 🎨 **HTML to Image**: Convert HTML content to printable images
+- 💰 **Cash Drawer**: Open cash drawers connected to printers
+- 🔧 **Print Management**: Semaphore locking for print queue management
 
 ## Installation
 
-```
+```bash
 npm install sunmi-external-printer
 ```
 
-## Usage
+### Android Setup
 
+Add the following permissions to your `android/app/src/main/AndroidManifest.xml`:
+
+```xml
+<uses-permission android:name="android.permission.BLUETOOTH" />
+<uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+<uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+<uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+<uses-permission android:name="android.permission.INTERNET" />
 ```
-import { base64Image } from '../base64image';
-import * as React from 'react';
 
+## Quick Start
+
+```typescript
 import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  useColorScheme,
-  TouchableOpacity,
-  FlatList,
-  PermissionsAndroid,
-} from 'react-native';
-import { Colors, Header } from 'react-native/Libraries/NewAppScreen';
-import {
-  EscPosImageWithTCPConnectionBitImageWrapper,
-  EscPosImageWithTCPConnectionGraphicsImageWrapper,
+  startNetworkDiscovery,
   EscPosImageWithTCPConnectionRasterBitImageWrapper,
-  openDrawer,
   printImageByBluetooth,
   scanBLDevice,
-  startNetworkDiscovery,
-  stopNetworkDiscovery,
+  convertHTMLtoBase64,
 } from 'sunmi-external-printer';
 import { DeviceEventEmitter } from 'react-native';
-import { useState } from 'react';
-import { convertHTMLtoBase64 } from '../../src';
-import type { printerDevice } from 'src/printerDevice';
-function App(): JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  const [ipAddress, setIpAddress] = useState<string>('');
-  const [port, setPort] = useState<string>('');
-  const [printerName, setPrinterName] = useState<string>('');
-  const [devices, setListofDevices] = useState<ItemData[]>([]);
-  const [currPrinter, setCurrPrinter] = useState<printerDevice | null>(null);
-  const [blDevices, setListofBlDevices] = useState<printerDevice[]>([]);
-  const [showFlatListNetwork, setShowFlatListNetwork] = useState<boolean>(true);
-  const [showFlatListBT, setShowFlatListBT] = useState<boolean>(false);
 
-  const Item2 = ({ item, onPress, backgroundColor, textColor }: any) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.item, { backgroundColor }]}
-    >
-      <Text style={[styles.title, { color: textColor }]}>{item.name}</Text>
-      <Text style={[styles.title, { color: textColor }]}>{item.address}</Text>
-    </TouchableOpacity>
-  );
-  const renderItem2 = ({ item }: { item: printerDevice }) => {
-    const backgroundColor =
-      item.name ===
-      (currPrinter === null ? ' ' : (currPrinter!!.name as string))
-        ? '#00008B'
-        : 'blue';
-    return (
-      <Item2
-        item={item}
-        onPress={async () => {
-          setCurrPrinter(item);
-        }}
-        backgroundColor={backgroundColor}
-        textColor={'white'}
-      />
-    );
-  };
-  const renderItem = ({ item }: { item: ItemData }) => {
-    const backgroundColor =
-      item.printerIPAddress === ipAddress ? '#00008B' : 'blue';
-    return (
-      <Item
-        item={item}
-        onPress={async () => {
-          setIpAddress(item.printerIPAddress);
-          setPort(item.printerPort);
-          setPrinterName(item.printerName);
-          const Print = await stopNetworkDiscovery();
-          DeviceEventEmitter.removeAllListeners();
-          setListofDevices([]);
-          console.log(Print);
-        }}
-        backgroundColor={backgroundColor}
-        textColor={'white'}
-      />
-    );
-  };
+// Network Discovery
+const discoverPrinters = async () => {
+  await startNetworkDiscovery();
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}
-      >
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}
-        >
-          <Button
-            title="Print with Graphic Image Wrapper"
-            onPress={async () => {
-              const Print =
-                await EscPosImageWithTCPConnectionGraphicsImageWrapper(
-                  base64Image,
-                  ipAddress,
-                  port
-                );
-              console.log(Print);
-            }}
-          />
-          <Button
-            title="Print with Bit Wrapper"
-            onPress={async () => {
-              const Print = await EscPosImageWithTCPConnectionBitImageWrapper(
-                base64Image,
-                ipAddress,
-                port
-              );
-              console.log(Print);
-            }}
-          />
-          <Button
-            title="Print with Raster Bit Wrapper "
-            onPress={async () => {
-              const Print =
-                await EscPosImageWithTCPConnectionRasterBitImageWrapper(
-                  base64Image,
-                  ipAddress,
-                  port
-                );
-              console.log(Print);
-            }}
-          />
-          <Button
-            title="Start Network Discovery"
-            onPress={async () => {
-              const networkDiscovery = await startNetworkDiscovery();
-              DeviceEventEmitter.addListener('OnPrinterFound', (event) => {
-                const device: ItemData = {
-                  printerName: event.printername,
-                  printerIPAddress: event.ip,
-                  printerPort: event.port,
-                };
-
-                setListofDevices([...devices, device]);
-              });
-              setListofBlDevices([]);
-              setShowFlatListBT(false);
-              setShowFlatListNetwork(true);
-              console.log(networkDiscovery);
-            }}
-          />
-          <Button
-            title="Stop Discovery"
-            onPress={async () => {
-              const Print = await stopNetworkDiscovery();
-              DeviceEventEmitter.removeAllListeners();
-              setListofDevices([]);
-              setShowFlatListNetwork(false);
-              setShowFlatListBT(true);
-              console.log(Print);
-            }}
-          />
-          <Button
-            title="Convert HTMl to Image"
-            onPress={async () => {
-              const Print = await convertHTMLtoBase64(
-                '' +
-                  '<html>\n' +
-                  '<head>\n' +
-                  '<style>\n' +
-                  'body {\n' +
-                  '  background-color: lightblue;\n' +
-                  '}\n' +
-                  '\n' +
-                  'h1 {\n' +
-                  '  text-align: center;\n' +
-                  '}\n' +
-                  '\n' +
-                  'p {\n' +
-                  '  font-family: verdana;\n' +
-                  '  font-size: 20px;\n' +
-                  '}\n' +
-                  'p.korean {\n' +
-                  '  font-family: Single Day;\n' +
-                  '  font-size: 20px;\n' +
-                  '}\n' +
-                  '</style>\n' +
-                  '</head>' +
-                  '<body>' +
-                  '<h1>Hello, world.</h1>' +
-                  '<p>الصفحة الرئيسية \n' + // Arabiac
-                  '<br>你好，世界 \n' + // Chinese
-                  '<br>こんにちは世界 \n' + // Japanese
-                  '<br>Привет мир \n' + // Russian
-                  '<br>नमस्ते दुनिया \n' + //  Hindi
-                  '<p class="korean"><br>안녕하세요 세계</p>' + // if necessary, you can download and install on your environment the Single Day from fonts.google...
-                  '</body>',
-                400
-              );
-              console.log(Print);
-            }}
-          />
-          <Button
-            title="Open Drawer"
-            onPress={async () => {
-              const drawer = await openDrawer(ipAddress, port);
-              console.log(drawer);
-            }}
-          />
-          <Button
-            title="startBTDisovery"
-            onPress={async () => {
-              const requestBLPermissions = async () => {
-                const res = await PermissionsAndroid.request(
-                  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION!!
-                );
-                await PermissionsAndroid.requestMultiple([
-                  PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN!!,
-                  PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT!!,
-                ]);
-                console.log(res);
-              };
-              await requestBLPermissions();
-              const granted = await PermissionsAndroid.request(
-                PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN!!,
-                {
-                  title: 'Android Scan Permission',
-                  message: 'Scan Bluetooth Permission',
-                  buttonNeutral: 'A ask Me Later',
-                  buttonNegative: 'Cancel',
-                  buttonPositive: 'OK',
-                }
-              );
-              if (granted) {
-                const results = await scanBLDevice();
-                console.log(results);
-                setListofBlDevices(results);
-                setShowFlatListBT(true);
-                setShowFlatListNetwork(false);
-                setListofDevices([]);
-              }
-            }}
-          />
-
-          <Button
-            title="printImageByBluetooth"
-            onPress={async () => {
-              const result = await printImageByBluetooth(
-                currPrinter!!,
-                base64Image
-              );
-              console.log(result);
-            }}
-          />
-          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
-            Current IP Printer Device:{printerName}
-          </Text>
-          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
-            IPAddress:{ipAddress}
-          </Text>
-          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
-            Port:{port}
-          </Text>
-          <Text style={{ alignSelf: 'center', fontSize: 20, marginTop: 10 }}>
-            Current BTPrinter:{currPrinter == null ? ' ' : currPrinter.name}{' '}
-            {currPrinter == null ? ' ' : currPrinter.address}
-          </Text>
-        </View>
-      </ScrollView>
-      <View style={{ borderWidth: 5, height: 300 }}>
-        {showFlatListBT && (
-          <FlatList
-            data={blDevices}
-            renderItem={renderItem2}
-            keyExtractor={(item) => item.address}
-            extraData={currPrinter}
-          />
-        )}
-        {showFlatListNetwork && (
-          <FlatList
-            data={devices}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.printerIPAddress}
-            extraData={ipAddress}
-          />
-        )}
-      </View>
-    </SafeAreaView>
-  );
-}
-type ItemData = {
-  printerName: string;
-  printerIPAddress: string;
-  printerPort: string;
+  DeviceEventEmitter.addListener('OnPrinterFound', (event) => {
+    console.log('Found printer:', event.printername, event.ip, event.port);
+  });
 };
 
-type ItemProps = {
-  item: ItemData;
-  onPress: () => void;
-  backgroundColor: string;
-  textColor: string;
+// Print via TCP/IP
+const printViaTCP = async () => {
+  const result = await EscPosImageWithTCPConnectionRasterBitImageWrapper(
+    base64Image,
+    '192.168.1.100',
+    '9100'
+  );
+  console.log('Print result:', result);
 };
-
-const Item = ({ item, onPress, backgroundColor, textColor }: ItemProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    style={[styles.item, { backgroundColor }]}
-  >
-    <Text style={[styles.title, { color: textColor }]}>
-      {item.printerIPAddress}
-    </Text>
-    <Text style={[styles.title, { color: textColor }]}>{item.printerName}</Text>
-    <Text style={[styles.title, { color: textColor }]}>{item.printerPort}</Text>
-  </TouchableOpacity>
-);
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  item: {
-    flex: 1,
-    padding: 20,
-    marginVertical: 8,
-    marginHorizontal: 16,
-  },
-  title: {
-    fontSize: 10,
-  },
-  devicesContainer: {
-    height: '300',
-  },
-});
-
-export default App;
 ```
 
-For futher details please see the example folder
+## API Reference
 
-## Functions:
+### Types
 
-startNetworkDiscovery()
+```typescript
+interface printerDevice {
+  name: string;
+  address: string; // MAC address for Bluetooth devices
+}
 
-| Parameters | Required | Type | Description                                                                                                      |
-| ---------- | -------- | ---- | ---------------------------------------------------------------------------------------------------------------- |
-| (void)     | -        | -    | starts a device event emitter listener. To listen to the event add a listener that listens to ‘On Printer Found’ |
+interface usbPrinterDevice {
+  id: string;
+  name: string;
+  productName: string;
+  manufacturerName: string;
+  vendorId: string;
+  version: string;
+  productId: string;
+}
+```
 
-stopNetworkDiscovery()
+### Network Printing
 
-| Parameters | Required | Type | Description                                                                |
-| ---------- | -------- | ---- | -------------------------------------------------------------------------- |
-| (void)     | -        | -    | Stops Network Discovery, make sure to also close your device event emitter |
+#### Discovery
 
-EscPosImageWithTCPConnectionBitImageWrapper
+```typescript
+// Start discovery
+await startNetworkDiscovery();
 
-| Parameters  | Required | Type   | Description                                                     |
-| ----------- | -------- | ------ | --------------------------------------------------------------- |
-| base64Image | true     | String | Print base64 image, remove the data:image; prefix if it has it. |
-| ipAddress   | true     | String | ipAddress of the printer                                        |
-| port        | true     | String | port of the printer (is usally 9100)                            |
+DeviceEventEmitter.addListener('OnPrinterFound', (event) => {
+  // event: { printername: string, ip: string, port: string }
+});
 
-EscPosImageWithTCPConnectionGraphicsImageWrapper
+// Stop discovery
+await stopNetworkDiscovery();
+DeviceEventEmitter.removeAllListeners('OnPrinterFound');
+```
 
-| Parameters  | Required | Type   | Description                                                     |
-| ----------- | -------- | ------ | --------------------------------------------------------------- |
-| base64Image | true     | String | Print base64 image, remove the data:image; prefix if it has it. |
-| ipAddress   | true     | String | ipAddress of the printer                                        |
-| port        | true     | String | port of the printer (is usally 9100)                            |
+#### TCP/IP Printing
 
-EscPosImageWithTCPConnectionRasterBitImageWrapper
+All methods accept: `base64Image`, `ipAddress`, `port`, and optional `cut` parameter.
 
-| Parameters  | Required | Type   | Description                                                     |
-| ----------- | -------- | ------ | --------------------------------------------------------------- |
-| base64Image | true     | String | Print base64 image, remove the data:image; prefix if it has it. |
-| ipAddress   | true     | String | ipAddress of the printer                                        |
-| port        | true     | String | port of the printer (is usally 9100)                            |
+```typescript
+// Recommended - Raster bit image (best quality)
+await EscPosImageWithTCPConnectionRasterBitImageWrapper(
+  base64Image,
+  '192.168.1.100',
+  '9100',
+  'FULL'
+);
 
-Only tested on Sunmi Cloud Printer NT311, The Printed Images are also only tested on width of 80mm.
+// Alternative methods
+await EscPosImageWithTCPConnectionBitImageWrapper(base64Image, ip, port);
+await EscPosImageWithTCPConnectionGraphicsImageWrapper(base64Image, ip, port);
+```
 
-Note: If an image size is larger or or smaller than 80mm, scale it down to the printer width first.
+### Bluetooth Printing
 
-scanBLDevice
+```typescript
+// Request permissions first
+import { PermissionsAndroid } from 'react-native';
+await PermissionsAndroid.requestMultiple([
+  PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+  PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+  PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+]);
 
-Returns a list of filtered (just printers) and non-filtered bluetooth devices (not just printers) after roughly 12 seconds of scanning period with the name and MAC address.
+// Scan for devices (takes ~12 seconds)
+const devices = await scanBLDevice();
 
-printImageByBluetooth
+// Get paired devices
+const pairedDevices = await getPairedDevices();
 
-printing an Image by Bluetooth and initiates a full cut at the end , uses the BitonalOrderDither algorithm
+// Print
+await printImageByBluetooth(device, base64Image, 'FULL');
+```
 
-| Parameters  | Required | Type   | Description                                               |
-| ----------- | -------- | ------ | --------------------------------------------------------- |
-| device      | true     | String | pass the device                                           |
-| base64Image | true     | String | base64 image, remove the data:image; prefix if it has it. |
+### USB Printing
+
+```typescript
+// Discover USB devices
+const usbDevices = await searchUSBDevices();
+
+// Print
+await printUSBDevice(device.productId, device.vendorId, base64Image, 'FULL');
+```
+
+### Cash Drawer
+
+```typescript
+// TCP/IP
+await openDrawer('192.168.1.100', '9100');
+
+// Bluetooth
+await openDrawerBluetooth(device);
+
+// USB
+await openDrawerUSB(productID, vendorID);
+```
+
+### Utilities
+
+#### HTML to Image
+
+```typescript
+const base64Image = await convertHTMLtoBase64(
+  `<html><body><h1>Receipt</h1><p>Total: $25.00</p></body></html>`,
+  400 // width in pixels
+);
+```
+
+#### Print Queue Management
+
+```typescript
+await lockPrintingSemaphore();
+try {
+  await printImageByBluetooth(device, image);
+} finally {
+  await unlockPrintingSemaphore();
+}
+```
+
+#### Connection Management
+
+```typescript
+await closePrinterSocket();
+await closeTCPPrinterSocket();
+```
+
+## Best Practices
+
+### Image Optimization
+
+- **Width**: ~576 pixels for 80mm thermal printers
+- **Format**: High contrast black and white images
+- **Base64**: Remove `data:image/...;base64,` prefix
+
+### Error Handling
+
+```typescript
+try {
+  const result = await EscPosImageWithTCPConnectionRasterBitImageWrapper(
+    base64Image,
+    ipAddress,
+    port
+  );
+} catch (error) {
+  console.error('Print failed:', error);
+}
+```
+
+### Memory Management
+
+- Remove event listeners on component unmount
+- Close connections when done
+- Use semaphore locking to prevent concurrent operations
+
+## Troubleshooting
+
+| Issue                       | Solution                                                      |
+| --------------------------- | ------------------------------------------------------------- |
+| Bluetooth permission denied | Grant BLUETOOTH_SCAN, BLUETOOTH_CONNECT, ACCESS_FINE_LOCATION |
+| Network printer not found   | Check same network, port 9100 accessibility                   |
+| Image not printing          | Remove base64 prefix, check image width (~576px)              |
+| USB issues                  | Verify OTG support, USB permissions                           |
+
+## License
+
+MIT
+
+---
+
+Made with [create-react-native-library](https://github.com/callstack/react-native-builder-bob)
+Prints to a USB connected printer.
+
+| Parameter   | Type   | Required | Description                    |
+| ----------- | ------ | -------- | ------------------------------ |
+| `productID` | string | Yes      | USB product ID                 |
+| `vendorID`  | string | Yes      | USB vendor ID                  |
+| `base64`    | string | Yes      | Base64 encoded image           |
+| `cut`       | string | Yes      | Cut type ('PARTIAL' or 'FULL') |
+
+```typescript
+const result = await printUSBDevice(
+  device.productId,
+  device.vendorId,
+  base64Image,
+  'FULL'
+);
+```
+
+### Cash Drawer Control
+
+#### `openDrawer()` (TCP/IP)
+
+Opens cash drawer connected to network printer.
+
+```typescript
+await openDrawer('192.168.1.100', '9100');
+```
+
+#### `openDrawerBluetooth()`
+
+Opens cash drawer via Bluetooth.
+
+```typescript
+await openDrawerBluetooth(device);
+```
+
+#### `openDrawerUSB()`
+
+Opens cash drawer via USB.
+
+```typescript
+await openDrawerUSB(productID, vendorID);
+```
+
+### Utility Functions
+
+#### `convertHTMLtoBase64()`
+
+Converts HTML content to a base64 image for printing.
+
+| Parameter | Type   | Required | Description           |
+| --------- | ------ | -------- | --------------------- |
+| `html`    | string | Yes      | HTML content          |
+| `width`   | number | Yes      | Image width in pixels |
+
+```typescript
+const base64Image = await convertHTMLtoBase64(
+  `
+  <html>
+    <body style="font-family: Arial;">
+      <h1>Receipt</h1>
+      <p>Total: $25.00</p>
+    </body>
+  </html>
+`,
+  400
+);
+```
+
+#### Print Management
+
+##### `lockPrintingSemaphore()` / `unlockPrintingSemaphore()`
+
+Manage print queue to prevent overlapping print jobs.
+
+```typescript
+await lockPrintingSemaphore();
+try {
+  await printImageByBluetooth(device, image);
+} finally {
+  await unlockPrintingSemaphore();
+}
+```
+
+#### Connection Management
+
+##### `closePrinterSocket()` / `closeTCPPrinterSocket()`
+
+Close printer connections.
+
+```typescript
+await closePrinterSocket(); // General connection
+await closeTCPPrinterSocket(); // TCP specific
+```
+
+#### Additional Bluetooth Functions
+
+##### `printBLCut()` / `printBLFeed()`
+
+Send cut or feed commands via Bluetooth.
+
+```typescript
+await printBLCut(device); // Cut paper
+await printBLFeed(device); // Feed paper
+```
+
+## Best Practices
+
+### Image Optimization
+
+- **Width**: Optimize images for 80mm thermal printers (approximately 576 pixels)
+- **Format**: Use high contrast black and white images for best results
+- **Size**: Keep file sizes small to improve printing speed
+
+### Error Handling
+
+Always wrap print operations in try-catch blocks:
+
+```typescript
+try {
+  const result = await EscPosImageWithTCPConnectionRasterBitImageWrapper(
+    base64Image,
+    ipAddress,
+    port
+  );
+  console.log('Print successful:', result);
+} catch (error) {
+  console.error('Print failed:', error);
+}
+```
+
+### Memory Management
+
+- Remove event listeners when component unmounts
+- Close connections when done
+- Use semaphore locking for concurrent print operations
+
+## Troubleshooting
+
+### Common Issues
+
+**Bluetooth Permission Denied**
+
+- Ensure all Bluetooth permissions are granted
+- Target Android SDK 31+ requires BLUETOOTH_SCAN and BLUETOOTH_CONNECT
+
+**Network Printer Not Found**
+
+- Verify printer and device are on same network
+- Check if printer port 9100 is accessible
+- Ensure printer supports ESC/POS commands
+
+**Image Not Printing**
+
+- Remove `data:image/...;base64,` prefix from base64 string
+- Ensure image width is appropriate for printer (80mm ≈ 576px)
+- Try different image rendering methods
+
+**USB Printer Issues**
+
+- Verify USB OTG support on device
+- Check USB permissions in Android manifest
+- Ensure printer supports USB printing
+
+## Example Project
+
+See the `/example` folder for a complete implementation demonstrating all features.
 
 ## Contributing
 
