@@ -31,7 +31,7 @@ import {
   scanBLDevice,
   searchUSBDevices,
   startNetworkDiscovery,
-} from 'sunmi-external-printer';
+} from '@viska-io/sunmi-external-printer';
 import { useState } from 'react';
 import { convertHTMLtoBase64 } from '../../src';
 import type { printerDevice, usbPrinterDevice } from 'src/printerDevice';

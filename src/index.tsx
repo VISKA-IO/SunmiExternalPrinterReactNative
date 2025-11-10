@@ -2,7 +2,7 @@ import { NativeModules, Platform } from 'react-native';
 import type { printerDevice, usbPrinterDevice } from './@types/index';
 
 const LINKING_ERROR =
-  `The package 'sunmi-external-printer' doesn't seem to be linked. Make sure: \n\n` +
+  `The package '@viska-io/sunmi-external-printer' doesn't seem to be linked. Make sure: \n\n` +
   Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';

@@ -1,5 +1,5 @@
 {
-  "name": "sunmi-external-printer",
+  "name": "@viska-io/sunmi-external-printer",
   "version": "0.6.36",
   "description": "Printing Module for Printing Images with Sunmi in React Native",
   "source": "./src/index.tsx",
@@ -41,21 +41,21 @@
     "prepare": "bob build",
     "release": "release-it",
     "example": "yarn --cwd example",
-    "bootstrap": "yarn example && yarn install && yarn example pods",
-    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build"
+    "bootstrap": "yarn example && yarn install ",
+    "clean": "del-cli android/build example/android/build example/android/app/build"
   },
   "keywords": [
     "react-native",
     "ios",
     "android"
   ],
-  "repository": "https://github.com/Dwikavindra/sunmi-external-printer",
+  "repository": "https://github.com/VISKA-IO/sunmi-external-printer",
   "author": "Dwikavindra Haryo Radithya <dwikavindra.haryo.r@mail.ugm.ac.id> (https://github.com/Dwikavindra)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Dwikavindra/sunmi-external-printer/issues"
+    "url": "https://github.com/VISKA-IO/sunmi-external-printer/issues"
   },
-  "homepage": "https://github.com/Dwikavindra/sunmi-external-printer#readme",
+  "homepage": "https://github.com/VISKA-IO/sunmi-external-printer#readme",
   "publishConfig": {
     "registry": "https://registry.npmjs.org/"
   },
