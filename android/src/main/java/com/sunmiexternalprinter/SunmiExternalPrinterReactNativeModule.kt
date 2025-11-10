@@ -40,26 +40,62 @@ import java.util.TreeSet
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Semaphore
 
+/**
+ * Main React Native bridge module that provides comprehensive external printer functionality.
+ *
+ * This module supports multiple connection methods for thermal printers:
+ * - Bluetooth (Classic)
+ * - TCP/IP (Network)
+ * - USB (Host mode)
+ *
+ * Features include:
+ * - Device discovery (Bluetooth scanning, Network service discovery, USB enumeration)
+ * - Image printing with multiple ESC/POS wrapper types
+ * - HTML to image conversion for receipt printing
+ * - Cash drawer control
+ * - Concurrent printing control with semaphores
+ * - Event emission for device state changes
+ *
+ * @author Sunmi External Printer Team
+ * @since 1.0.0
+ */
 class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) :
         ReactContextBaseJavaModule(reactContext) {
+  /** Current promise for async operations - ensures single operation at a time */
   private var promise: Promise? = null
 
   /** Network service discovery manager for finding TCP/IP printers */
   private var nsdManager: NsdManager? = null
+
+  /** Bluetooth system service manager */
   val bluetoothManager: BluetoothManager =
           ContextCompat.getSystemService(
                   this.reactApplicationContext,
                   BluetoothManager::class.java
           )!!
+
+  /** Bluetooth adapter for device operations */
   val bluetoothAdapter: BluetoothAdapter? = bluetoothManager.adapter
+
+  /** ESC/POS command processor instance */
   var escpos: EscPos? = null
+
+  /** Flag indicating if Bluetooth scanning is in progress */
   private var scanning = false
 
   /** Main thread handler for UI operations */
   private val handler = Handler(Looper.getMainLooper())
+
+  /** Sorted set of discovered Bluetooth devices */
   private val bleScanResults: SortedSet<BluetoothDeviceComparable> = TreeSet()
+
+  /** List of Bluetooth devices with class changes */
   private val bleScanResultsClassChanged = mutableListOf<BluetoothDeviceComparable>()
+
+  /** List of Bluetooth device data objects */
   private val bleScanResultsDataClass = mutableListOf<BTDevice>()
+
+  /** Semaphore for controlling concurrent printing operations */
   private val printingSemaphore = Semaphore(1)
 
   /** Active Bluetooth communication stream */
@@ -67,6 +103,11 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
   /** Active TCP/IP communication stream */
   var tcpStream: com.sunmiexternalprinter.TcpIpOutputStream? = null
+
+  /**
+   * Broadcast receiver for handling Bluetooth device disconnection events. Listens for
+   * ACTION_ACL_DISCONNECTED and emits BTDeviceDisconnected event to React Native.
+   */
   private var receiverDisconnectedBluetoothDeviceReceiver: BroadcastReceiver =
           object : BroadcastReceiver() {
             @SuppressLint("MissingPermission")
@@ -118,6 +159,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     )
   }
 
+  /**
+   * Network service discovery resolve listener for TCP/IP printer discovery. Handles successful
+   * resolution of network services and emits OnPrinterFound events.
+   */
   private val resolveListener =
           object : NsdManager.ResolveListener {
 
@@ -141,6 +186,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             }
           }
 
+  /**
+   * Network service discovery listener for finding TCP/IP printers. Manages the discovery lifecycle
+   * and handles found/lost services.
+   */
   private val discoveryListener: NsdManager.DiscoveryListener =
           object : NsdManager.DiscoveryListener {
             override fun onStartDiscoveryFailed(p0: String?, p1: Int) {
@@ -168,6 +217,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     return NAME
   }
 
+  /**
+   * Acquires the printing semaphore to ensure exclusive access to printing operations. This
+   * prevents multiple concurrent print jobs that could interfere with each other.
+   *
+   * @param promise Promise that resolves when semaphore is acquired
+   */
   @ReactMethod
   fun lockPrintingSemaphore(promise: Promise) {
     Thread {
@@ -196,6 +251,14 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             .start()
   }
 
+  /**
+   * Converts HTML content to a Base64-encoded bitmap image for printing. Uses WebView to render
+   * HTML and converts to bitmap suitable for thermal printers.
+   *
+   * @param htmlString HTML content to convert to image
+   * @param width Target width for the resulting bitmap
+   * @param promise Promise that resolves with Base64 string or rejects with error
+   */
   @ReactMethod
   fun convertHTMLtoBase64(htmlString: String, width: Int, promise: Promise) {
     this.promise = promise
@@ -481,6 +544,10 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
   }
 
+  /**
+   * Broadcast receiver for handling Bluetooth device discovery events. Processes ACTION_FOUND,
+   * ACTION_CLASS_CHANGED, and ACTION_DISCOVERY_FINISHED.
+   */
   private val receiver =
           object : BroadcastReceiver() {
             @SuppressWarnings("MissingPermission")
@@ -638,6 +705,15 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
   }
 
+  /**
+   * Prints a Base64-encoded image via Bluetooth connection. Uses RasterBitImageWrapper for optimal
+   * image quality over Bluetooth.
+   *
+   * @param address Bluetooth MAC address of target printer
+   * @param base64Image Base64-encoded image data
+   * @param cut Paper cutting mode: "PARTIAL" or "FULL"
+   * @param promise Promise that resolves on success or rejects on error
+   */
   @SuppressLint("MissingPermission")
   @ReactMethod
   private fun printImageByBluetooth(
@@ -682,6 +758,13 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             .start()
   }
 
+  /**
+   * Sends a paper cut command via Bluetooth connection. Useful for cutting paper without printing
+   * additional content.
+   *
+   * @param address Bluetooth MAC address of target printer
+   * @param promise Promise that resolves when cut command is sent
+   */
   @SuppressLint("MissingPermission")
   @ReactMethod
   private fun printCutByBluetooth(address: String, addresspromise: Promise) {
@@ -715,6 +798,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             .start()
   }
 
+  /**
+   * Closes the active Bluetooth printer socket connection. Should be called after printing
+   * operations to free resources.
+   *
+   * @param promise Promise that resolves when socket is closed
+   */
   @SuppressLint("MissingPermission")
   @ReactMethod
   private fun closePrinterSocket(promise: Promise) {
@@ -762,6 +851,13 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
     }
   }
 
+  /**
+   * Opens a cash drawer connected to a Bluetooth printer. Sends standard ESC/POS drawer kick
+   * commands via Bluetooth.
+   *
+   * @param macAddress Bluetooth MAC address of target printer
+   * @param promise Promise that resolves when drawer command is sent
+   */
   @ReactMethod
   fun openDrawerBluetooth(macAddress: String, promise: Promise) {
     this.promise = promise
@@ -920,6 +1016,12 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             .start()
   }
 
+  /**
+   * Searches for and returns available USB devices. Lists all connected USB devices with their
+   * properties for device selection.
+   *
+   * @param promise Promise that resolves with array of USB device information
+   */
   @RequiresApi(Build.VERSION_CODES.M)
   @SuppressLint("unused")
   @ReactMethod
