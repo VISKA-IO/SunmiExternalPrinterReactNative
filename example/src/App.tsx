@@ -32,10 +32,24 @@ import {
   searchUSBDevices,
   startNetworkDiscovery,
 } from '@viska-io/sunmi-external-printer';
+import type {
+  printerDevice,
+  usbPrinterDevice,
+} from '@viska-io/sunmi-external-printer';
 import { useState } from 'react';
 import { convertHTMLtoBase64 } from '../../src';
-import type { printerDevice, usbPrinterDevice } from 'src/printerDevice';
 import { html } from '../exampleBigOrder';
+
+const Item2 = ({ item, onPress, backgroundColor, textColor }: any) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={[styles.item, { backgroundColor }]}
+  >
+    <Text style={[styles.title, { color: textColor }]}>{item.name}</Text>
+    <Text style={[styles.title, { color: textColor }]}>{item.address}</Text>
+  </TouchableOpacity>
+);
+
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
   const [ipAddress, setIpAddress] = useState<string>('');
@@ -52,15 +66,6 @@ function App(): JSX.Element {
   const [showFlatListBT, setShowFlatListBT] = useState<boolean>(false);
   const [showFlatListUSB, setShowFlatListUSB] = useState<boolean>(false);
 
-  const Item2 = ({ item, onPress, backgroundColor, textColor }: any) => (
-    <TouchableOpacity
-      onPress={onPress}
-      style={[styles.item, { backgroundColor }]}
-    >
-      <Text style={[styles.title, { color: textColor }]}>{item.name}</Text>
-      <Text style={[styles.title, { color: textColor }]}>{item.address}</Text>
-    </TouchableOpacity>
-  );
   const renderItem2 = ({ item }: { item: printerDevice }) => {
     const backgroundColor =
       item.name ===
@@ -321,7 +326,7 @@ function App(): JSX.Element {
 
               console.log('This is results USB', results);
               setListofUSBDevices(results);
-              setShowFlatListBT(false);
+              false;
               setShowFlatListNetwork(false);
               setShowFlatListUSB(true);
               setListofDevices([]);
