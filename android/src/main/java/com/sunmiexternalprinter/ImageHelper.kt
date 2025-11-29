@@ -9,51 +9,59 @@ import java.io.IOException
 
 /**
  * Utility class for processing and printing large images on thermal printers.
- * 
- * Thermal printers have limitations on the maximum image dimensions they can
- * process in a single operation. This class handles the slicing of large images
- * into smaller segments that can be printed sequentially, ensuring compatibility
- * with various printer models and image sizes.
- * 
- * The class automatically adjusts image dimensions to be compatible with
- * thermal printer requirements (height must be multiples of 24 pixels) and
- * provides methods for both slicing and printing operations.
- * 
+ *
+ * Thermal printers have limitations on the maximum image dimensions they can process in a single
+ * operation. This class handles the slicing of large images into smaller segments that can be
+ * printed sequentially, ensuring compatibility with various printer models and image sizes.
+ *
+ * The class automatically adjusts image dimensions to be compatible with thermal printer
+ * requirements (height must be multiples of 96 pixels) and provides methods for both slicing and
+ * printing operations.
+ *
+ * Note: 96 is used as the alignment value (instead of 24) based on reports that some printers
+ * require this larger alignment to avoid gibberish output. 96 is also a multiple of 24 and 8,
+ * ensuring compatibility with all ESC/POS raster image commands.
+ *
  * @param maxWidth Maximum width for image segments
- * @param maxHeight Maximum height for image segments (adjusted to multiples of 24)
- * 
+ * @param maxHeight Maximum height for image segments (adjusted to multiples of 96)
+ *
  * @author Sunmi External Printer Team
  * @since 1.0.0
  */
-class ImageHelper (maxWidth:Int, maxHeight:Int){
+class ImageHelper(maxWidth: Int, maxHeight: Int) {
+  /** Height alignment constant for ESC/POS image compatibility */
+  companion object {
+    const val HEIGHT_ALIGNMENT = 96
+  }
+
   /** Maximum width for image segments */
   private var maxWidth = maxWidth
-  
-  /** Maximum height for image segments (adjusted to multiples of 24) */
+
+  /** Maximum height for image segments (adjusted to multiples of 96) */
   private var maxHeight = maxHeight
 
   /**
    * Initializes the ImageHelper with dimension constraints.
-   * 
-   * Automatically adjusts maxHeight to ensure compatibility with thermal
-   * printer requirements. Height must be at least 24 pixels and a multiple
-   * of 24 for proper ESC/POS image processing.
+   *
+   * Automatically adjusts maxHeight to ensure compatibility with thermal printer requirements.
+   * Height must be at least HEIGHT_ALIGNMENT pixels and a multiple of HEIGHT_ALIGNMENT for proper
+   * ESC/POS image processing.
    */
   init {
     var maxHeight = maxHeight
-    if (maxHeight < 24) maxHeight = 24
-    if (maxHeight % 24 != 0) maxHeight -= maxHeight % 24
+    if (maxHeight < HEIGHT_ALIGNMENT) maxHeight = HEIGHT_ALIGNMENT
+    if (maxHeight % HEIGHT_ALIGNMENT != 0) maxHeight -= maxHeight % HEIGHT_ALIGNMENT
     this.maxWidth = maxWidth
     this.maxHeight = maxHeight
   }
 
   /**
    * Slices a large image into smaller segments suitable for thermal printing.
-   * 
-   * This method divides an image into smaller pieces based on the maximum
-   * dimensions specified during initialization. Each segment will be within
-   * the printer's processing capabilities while maintaining image integrity.
-   * 
+   *
+   * This method divides an image into smaller pieces based on the maximum dimensions specified
+   * during initialization. Each segment will be within the printer's processing capabilities while
+   * maintaining image integrity.
+   *
    * @param coffeeImage The image to be sliced into smaller segments
    * @return List of image segments ready for sequential printing
    */
@@ -87,11 +95,11 @@ class ImageHelper (maxWidth:Int, maxHeight:Int){
 
   /**
    * Processes and prints an image by slicing it into segments and printing sequentially.
-   * 
-   * This method combines the slicing and printing operations into a single call.
-   * It automatically handles large images by breaking them into printer-compatible
-   * segments and sending each segment to the ESC/POS printer in sequence.
-   * 
+   *
+   * This method combines the slicing and printing operations into a single call. It automatically
+   * handles large images by breaking them into printer-compatible segments and sending each segment
+   * to the ESC/POS printer in sequence.
+   *
    * @param escPos ESC/POS printer instance for output
    * @param image Image to be processed and printed
    * @param wrapper Image wrapper defining the printing method (Raster, Bit, Graphics)
@@ -100,10 +108,10 @@ class ImageHelper (maxWidth:Int, maxHeight:Int){
    */
   @Throws(IOException::class)
   fun write(
-    escPos: EscPos,
-    image: CoffeeImage,
-    wrapper: ImageWrapperInterface<*>?,
-    bitonalAlgorithm: Bitonal?
+          escPos: EscPos,
+          image: CoffeeImage,
+          wrapper: ImageWrapperInterface<*>?,
+          bitonalAlgorithm: Bitonal?
   ) {
     val images = sliceImage(image)
     for (img in images) {
