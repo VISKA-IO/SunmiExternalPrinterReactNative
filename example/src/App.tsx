@@ -246,8 +246,8 @@ function App(): JSX.Element {
               const Print =
                 await EscPosImageWithTCPConnectionRasterBitImageWrapper(
                   base64Image,
-                  '192.168.1.1',
-                  '9100',
+                  ipAddress,
+                  port,
                   'PARTIAL'
                 );
 
