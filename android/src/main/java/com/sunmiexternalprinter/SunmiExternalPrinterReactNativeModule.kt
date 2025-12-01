@@ -288,7 +288,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                 val byteArrayOutputStream = ByteArrayOutputStream()
                 bitmap?.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
                 val byteArray = byteArrayOutputStream.toByteArray()
-                val base64String = Base64.encodeToString(byteArray, Base64.DEFAULT)
+                // Use NO_WRAP for single-line output (modern standard, better compatibility)
+                val base64String = Base64.encodeToString(byteArray, Base64.NO_WRAP)
                 promise.resolve(base64String)
               } catch (e: java.lang.Exception) {
                 e.printStackTrace()
@@ -337,7 +338,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
     Thread {
               try {
-                val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+                // Use NO_WRAP to handle base64 strings with or without line breaks
+                val encodedBase64 = Base64.decode(base64Image, Base64.NO_WRAP)
                 val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
                 val scaledBitmap =
                         Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
@@ -395,7 +397,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
     Thread {
               try {
-                val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+                // Use NO_WRAP to handle base64 strings with or without line breaks
+                val encodedBase64 = Base64.decode(base64Image, Base64.NO_WRAP)
                 val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
                 val scaledBitmap =
                         Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
@@ -452,7 +455,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
     Thread {
               try {
-                val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+                // Use NO_WRAP to handle base64 strings with or without line breaks
+                val encodedBase64 = Base64.decode(base64Image, Base64.NO_WRAP)
                 val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
                 val scaledBitmap =
                         Bitmap.createScaledBitmap(bitmap, bitmap.width, bitmap.height, true)
@@ -756,7 +760,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                   e.printStackTrace()
                 }
                 escpos = EscPos(stream)
-                val encodedBase64 = Base64.decode(base64Image, Base64.DEFAULT)
+                // Use NO_WRAP to handle base64 strings with or without line breaks
+                val encodedBase64 = Base64.decode(base64Image, Base64.NO_WRAP)
                 val bitmap = BitmapFactory.decodeByteArray(encodedBase64, 0, encodedBase64.size)
                 val scaledBitmap =
                         Bitmap.createScaledBitmap(bitmap, bitmap.width - 40, bitmap.height, true)
