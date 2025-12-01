@@ -1,5 +1,4 @@
 buildscript {
-
   // Buildscript is evaluated before everything else so we can't use getExtOrDefault
   def kotlin_version = rootProject.ext.has("kotlinVersion") ? rootProject.ext.get("kotlinVersion") : project.properties["SunmiExternalPrinterReactNative_kotlinVersion"]
 
@@ -9,7 +8,7 @@ buildscript {
   }
 
   dependencies {
-    classpath "com.android.tools.build:gradle:7.2.1"
+    classpath "com.android.tools.build:gradle:8.9.1"
     // noinspection DifferentKotlinGradleVersion
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
@@ -21,9 +20,6 @@ def isNewArchitectureEnabled() {
 
 apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
-
-
-def appProject = rootProject.allprojects.find { it.plugins.hasPlugin('com.android.application') }
 
 if (isNewArchitectureEnabled()) {
   apply plugin: "com.facebook.react"
@@ -38,6 +34,7 @@ def getExtOrIntegerDefault(name) {
 }
 
 android {
+  namespace "com.sunmiexternalprinter"
   compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
 
   defaultConfig {
@@ -45,6 +42,11 @@ android {
     targetSdkVersion getExtOrIntegerDefault("targetSdkVersion")
     buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
   }
+
+  buildFeatures {
+    buildConfig true
+  }
+
   buildTypes {
     release {
       minifyEnabled false
@@ -56,10 +58,21 @@ android {
   }
 
   compileOptions {
-    sourceCompatibility JavaVersion.VERSION_1_8
-    targetCompatibility JavaVersion.VERSION_1_8
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
   }
 
+  kotlinOptions {
+    jvmTarget = "17"
+  }
+
+  sourceSets {
+    main {
+      if (isNewArchitectureEnabled()) {
+        java.srcDirs += ["build/generated/source/codegen/java"]
+      }
+    }
+  }
 }
 
 repositories {
@@ -84,9 +97,6 @@ dependencies {
   implementation 'com.github.anastaciocintra:escpos-coffee:4.1.0'
   implementation 'com.izettle:html2bitmap:1.10'
   implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
-
-
-
 }
 
 if (isNewArchitectureEnabled()) {

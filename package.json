@@ -177,5 +177,13 @@
     "type": "module-mixed",
     "languages": "kotlin-objc",
     "version": "0.39.0"
+  },
+  "codegenConfig": {
+    "name": "RNSunmiExternalPrinterSpec",
+    "type": "modules",
+    "jsSrcsDir": "src",
+    "android": {
+      "javaPackageName": "com.sunmiexternalprinter"
+    }
   }
 }

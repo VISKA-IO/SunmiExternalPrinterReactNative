@@ -1,4 +1,4 @@
-import { NativeModules, Platform } from 'react-native';
+import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
 import type { printerDevice, usbPrinterDevice } from './@types/index';
 
 const LINKING_ERROR =
@@ -7,8 +7,14 @@ const LINKING_ERROR =
   '- You rebuilt the app after installing the package\n' +
   '- You are not using Expo Go\n';
 
-export const SunmiExternalPrinterReactNative =
-  NativeModules.SunmiExternalPrinterReactNative
+// Try to get TurboModule first, fallback to NativeModules for old architecture
+const isTurboModuleEnabled =
+  (global as unknown as { __turboModuleProxy: unknown }).__turboModuleProxy !=
+  null;
+
+export const SunmiExternalPrinterReactNative = isTurboModuleEnabled
+  ? TurboModuleRegistry.getEnforcing('SunmiExternalPrinterReactNative')
+  : NativeModules.SunmiExternalPrinterReactNative
     ? NativeModules.SunmiExternalPrinterReactNative
     : new Proxy(
         {},
