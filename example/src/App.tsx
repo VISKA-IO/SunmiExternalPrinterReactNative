@@ -52,8 +52,8 @@ const Item2 = ({ item, onPress, backgroundColor, textColor }: any) => (
 
 function App(): JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
-  const [ipAddress, setIpAddress] = useState<string>('');
-  const [port, setPort] = useState<string>('');
+  const [ipAddress, setIpAddress] = useState<string>('192.168.1.220');
+  const [port, setPort] = useState<string>('9100');
   const [printerName, setPrinterName] = useState<string>('');
   const [devices, setListofDevices] = useState<ItemData[]>([]);
   const [USBdevices, setListofUSBDevices] = useState<usbPrinterDevice[]>([]);
