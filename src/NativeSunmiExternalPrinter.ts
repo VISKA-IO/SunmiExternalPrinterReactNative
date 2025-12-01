@@ -2,14 +2,14 @@ import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 
 export interface Spec extends TurboModule {
-  // Semaphore methods
+  // Semaphore operations
   lockPrintingSemaphore(): Promise<void>;
   unlockPrintingSemaphore(): Promise<void>;
 
-  // HTML conversion
+  // HTML to Base64 conversion
   convertHTMLtoBase64(htmlString: string, width: number): Promise<string>;
 
-  // Service methods
+  // Service names
   getListofServiceNames(): Promise<string[]>;
 
   // TCP/IP printing methods
@@ -27,7 +27,7 @@ export interface Spec extends TurboModule {
     cut: string
   ): Promise<string>;
 
-  printImageWithTCPGraphicsImageWrapper(
+  printImageWithGraphicsImageWrapper(
     base64Image: string,
     ipAddress: string,
     port: string,
@@ -41,7 +41,7 @@ export interface Spec extends TurboModule {
   // TCP drawer
   openDrawer(ipAddress: string, port: string): Promise<boolean>;
 
-  // Bluetooth methods
+  // Bluetooth operations
   scanBLDevice(): Promise<Object>;
   printImageByBluetooth(
     address: string,
@@ -49,23 +49,20 @@ export interface Spec extends TurboModule {
     cut: string
   ): Promise<string>;
   printCutByBluetooth(address: string): Promise<string>;
-  printBluetoothFeed(address: string): Promise<string>;
   closePrinterSocket(): Promise<string>;
+  closeTCPPrinterSocket(): Promise<string>;
   getPairedDevices(): Promise<Object[]>;
   openDrawerBluetooth(macAddress: string): Promise<boolean>;
 
-  // TCP socket
-  closeTCPPrinterSocket(): Promise<string>;
-
-  // USB methods
-  searchUSBDevices(): Promise<Object[]>;
+  // USB operations
   printUSBDevice(
     productID: string,
-    vendorID: string,
-    base64: string,
+    vendorId: string,
+    base64String: string,
     cut: string
   ): Promise<string>;
-  openDrawerUSB(productID: string, vendorID: string): Promise<boolean>;
+  openDrawerUSB(productID: string, vendorId: string): Promise<boolean>;
+  searchUSBDevices(): Promise<Object[]>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>(

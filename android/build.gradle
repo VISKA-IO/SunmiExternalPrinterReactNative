@@ -70,6 +70,8 @@ android {
     main {
       if (isNewArchitectureEnabled()) {
         java.srcDirs += ["build/generated/source/codegen/java"]
+      } else {
+        java.srcDirs += ["src/oldarch/java"]
       }
     }
   }

@@ -1,5 +1,6 @@
-import { NativeModules, Platform, TurboModuleRegistry } from 'react-native';
+import { NativeModules, Platform } from 'react-native';
 import type { printerDevice, usbPrinterDevice } from './@types/index';
+import NativeSunmiExternalPrinter from './NativeSunmiExternalPrinter';
 
 const LINKING_ERROR =
   `The package '@viska-io/sunmi-external-printer' doesn't seem to be linked. Make sure: \n\n` +
@@ -13,7 +14,7 @@ const isTurboModuleEnabled =
   null;
 
 export const SunmiExternalPrinterReactNative = isTurboModuleEnabled
-  ? TurboModuleRegistry.getEnforcing('SunmiExternalPrinterReactNative')
+  ? NativeSunmiExternalPrinter
   : NativeModules.SunmiExternalPrinterReactNative
     ? NativeModules.SunmiExternalPrinterReactNative
     : new Proxy(

@@ -60,7 +60,7 @@ import kotlinx.coroutines.sync.Semaphore
  * @since 1.0.0
  */
 class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContext) :
-        ReactContextBaseJavaModule(reactContext) {
+        NativeSunmiExternalPrinterSpec(reactContext) {
   /** Current promise for async operations - ensures single operation at a time */
   private var promise: Promise? = null
 
@@ -213,9 +213,17 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
             override fun onServiceLost(p0: NsdServiceInfo?) {}
           }
 
+  // getName() is provided by NativeSunmiExternalPrinterSpec for New Architecture
+  // For Old Architecture, NativeSunmiExternalPrinterSpec extends ReactContextBaseJavaModule
+  // which requires getName() to be overridden
   override fun getName(): String {
     return NAME
   }
+
+  // Property to access ReactApplicationContext in Kotlin style
+  // Works for both Old and New Architecture
+  protected val reactAppContext: ReactApplicationContext
+    get() = reactApplicationContext
 
   /**
    * Acquires the printing semaphore to ensure exclusive access to printing operations. This
@@ -224,7 +232,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves when semaphore is acquired
    */
   @ReactMethod
-  fun lockPrintingSemaphore(promise: Promise) {
+  override fun lockPrintingSemaphore(promise: Promise) {
     Thread {
               runBlocking {
                 printingSemaphore.acquire()
@@ -241,7 +249,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves when semaphore is released
    */
   @ReactMethod
-  fun unlockPrintingSemaphore(promise: Promise) {
+  override fun unlockPrintingSemaphore(promise: Promise) {
     Thread {
               runBlocking {
                 printingSemaphore.release()
@@ -260,7 +268,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves with Base64 string or rejects with error
    */
   @ReactMethod
-  fun convertHTMLtoBase64(htmlString: String, width: Int, promise: Promise) {
+  override fun convertHTMLtoBase64(htmlString: String, width: Double, promise: Promise) {
     this.promise = promise
     Thread {
               try {
@@ -276,7 +284,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
                                 .setContext(reactApplicationContext.applicationContext)
                                 .setConfigurator(html2BitmapConfigurator)
                                 .setContent(WebViewContent.html(htmlString))
-                                .setBitmapWidth(width)
+                                .setBitmapWidth(width.toInt())
                                 .build()
                                 .bitmap
                 //        val resizedBitmap = Bitmap.createScaledBitmap(
@@ -306,7 +314,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @Suppress("DEPRECATION")
   @ReactMethod
-  fun getListofServiceNames(promise: Promise) {
+  override fun getListofServiceNames(promise: Promise) {
     val activityManager: ActivityManager =
             reactApplicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
     val services: WritableArray = Arguments.createArray()
@@ -327,7 +335,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves on success or rejects on error
    */
   @ReactMethod
-  fun printImageWithTCPRasterBitImageWrapper(
+  override fun printImageWithTCPRasterBitImageWrapper(
           base64Image: String,
           ipAddress: String,
           port: String,
@@ -386,7 +394,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves on success or rejects on error
    */
   @ReactMethod
-  fun printImageWithTCPBitImageWrapper(
+  override fun printImageWithTCPBitImageWrapper(
           base64Image: String,
           ipAddress: String,
           port: String,
@@ -444,7 +452,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves on success or rejects on error
    */
   @ReactMethod
-  fun printImageWithGraphicsImageWrapper(
+  override fun printImageWithGraphicsImageWrapper(
           base64Image: String,
           ipAddress: String,
           port: String,
@@ -498,7 +506,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves when discovery starts or rejects on error
    */
   @ReactMethod
-  fun startDiscovery(promise: Promise) {
+  override fun startDiscovery(promise: Promise) {
     try {
       nsdManager =
               reactApplicationContext.applicationContext.getSystemService(Context.NSD_SERVICE) as
@@ -523,7 +531,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves when drawer command is sent
    */
   @ReactMethod
-  fun openDrawer(ipAddress: String, port: String, promise: Promise) {
+  override fun openDrawer(ipAddress: String, port: String, promise: Promise) {
     this.promise = promise
     Thread {
               try {
@@ -547,7 +555,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves when discovery is stopped
    */
   @ReactMethod
-  fun stopDiscovery(promise: Promise) {
+  override fun stopDiscovery(promise: Promise) {
     try {
       if (nsdManager !== null) {
         nsdManager?.stopServiceDiscovery(discoveryListener)
@@ -704,7 +712,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun scanBLDevice(promise: Promise) {
+  override fun scanBLDevice(promise: Promise) {
     bleScanResults.clear()
     bleScanResultsDataClass.clear()
     Log.d("Size:", "${bleScanResults.size}")
@@ -743,7 +751,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun printImageByBluetooth(
+  override fun printImageByBluetooth(
           address: String,
           base64Image: String,
           cut: String,
@@ -795,7 +803,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun printCutByBluetooth(address: String, addresspromise: Promise) {
+  override fun printCutByBluetooth(address: String, addresspromise: Promise) {
     this.promise = addresspromise
     println("Here Inside the function in android  ")
     Thread {
@@ -834,7 +842,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun closePrinterSocket(promise: Promise) {
+  override fun closePrinterSocket(promise: Promise) {
     try {
       stream!!.closeSocket()
       promise.resolve("Socket close")
@@ -851,7 +859,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun closeTCPPrinterSocket(promise: Promise) {
+  override fun closeTCPPrinterSocket(promise: Promise) {
     if (tcpStream != null) {
       tcpStream!!.closeSocket(promise)
     } else {
@@ -867,7 +875,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("MissingPermission")
   @ReactMethod
-  private fun getPairedDevices(promise: Promise) {
+  override fun getPairedDevices(promise: Promise) {
     try {
       this.promise = promise
       println("Here Inside the function in android  ")
@@ -887,7 +895,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    * @param promise Promise that resolves when drawer command is sent
    */
   @ReactMethod
-  fun openDrawerBluetooth(macAddress: String, promise: Promise) {
+  override fun openDrawerBluetooth(macAddress: String, promise: Promise) {
     this.promise = promise
     Thread {
               try {
@@ -922,7 +930,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("unused", "UnspecifiedRegisterReceiverFlag", "InlinedApi")
   @ReactMethod
-  fun printUSBDevice(
+  override fun printUSBDevice(
           productID: String,
           vendorId: String,
           base64String: String,
@@ -992,7 +1000,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
    */
   @SuppressLint("unused", "UnspecifiedRegisterReceiverFlag", "InlinedApi")
   @ReactMethod
-  fun openDrawerUSB(productID: String, vendorId: String, promise: Promise) {
+  override fun openDrawerUSB(productID: String, vendorId: String, promise: Promise) {
     Thread {
               try {
                 val manager =
@@ -1053,7 +1061,7 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
   @RequiresApi(Build.VERSION_CODES.M)
   @SuppressLint("unused")
   @ReactMethod
-  fun searchUSBDevices(promise: Promise) {
+  override fun searchUSBDevices(promise: Promise) {
     try {
       val manager = reactApplicationContext.getSystemService(Context.USB_SERVICE) as UsbManager
       val deviceList = manager.getDeviceList()
