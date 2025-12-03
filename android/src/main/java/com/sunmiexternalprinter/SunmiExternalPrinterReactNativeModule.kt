@@ -1041,7 +1041,8 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
 
   /**
    * Searches for and returns available USB devices. Lists all connected USB devices with their
-   * properties for device selection.
+   * properties for device selection. Note: Some properties like serialNumber, productName, and
+   * manufacturerName require USB permission to access on Android 10+.
    *
    * @param promise Promise that resolves with array of USB device information
    */
@@ -1057,10 +1058,18 @@ class SunmiExternalPrinterReactNativeModule(reactContext: ReactApplicationContex
         val writableMap = Arguments.createMap()
         writableMap.putString("id", key)
         writableMap.putString("name", usbDevice.deviceName)
-        writableMap.putString("productName", usbDevice.productName)
-        writableMap.putString("manufacturerName", usbDevice.manufacturerName)
-        //        writableMap.putString("serialNumber",usbDevice.serialNumber)
-        usbDevice.serialNumber
+        // productName, manufacturerName, and serialNumber require USB permission on Android 10+
+        // Wrap in try-catch to avoid SecurityException when permission is not yet granted
+        try {
+          writableMap.putString("productName", usbDevice.productName)
+        } catch (e: SecurityException) {
+          writableMap.putString("productName", null)
+        }
+        try {
+          writableMap.putString("manufacturerName", usbDevice.manufacturerName)
+        } catch (e: SecurityException) {
+          writableMap.putString("manufacturerName", null)
+        }
         writableMap.putString("vendorId", usbDevice.vendorId.toString())
         writableMap.putString("version", usbDevice.version)
         writableMap.putString("productId", usbDevice.productId.toString())

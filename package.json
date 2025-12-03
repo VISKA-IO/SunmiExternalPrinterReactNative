@@ -178,5 +178,6 @@
     "type": "module-mixed",
     "languages": "kotlin-objc",
     "version": "0.39.0"
-  }
+  },
+  "dependencies": {}
 }
