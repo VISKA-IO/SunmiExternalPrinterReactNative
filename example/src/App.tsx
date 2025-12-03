@@ -125,14 +125,14 @@ function App(): JSX.Element {
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
+    <SafeAreaView style={[backgroundStyle, { flex: 1 }]}>
       <StatusBar
         barStyle={isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor={backgroundStyle.backgroundColor}
       />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}
+        style={[backgroundStyle, { flex: 1 }]}
       >
         <Header />
         <View
@@ -523,7 +523,17 @@ function App(): JSX.Element {
           </Text>
         </View>
       </ScrollView>
-      <View style={{ height: 200 }}>
+      <View style={{ height: 250, backgroundColor: '#f0f0f0' }}>
+        <Text style={{ textAlign: 'center', padding: 5, fontWeight: 'bold' }}>
+          {showFlatListUSB
+            ? 'USB Devices'
+            : showFlatListBT
+            ? 'Bluetooth Devices'
+            : 'Network Devices'}
+          {showFlatListUSB && ` (${USBdevices.length})`}
+          {showFlatListBT && ` (${blDevices.length})`}
+          {showFlatListNetwork && ` (${devices.length})`}
+        </Text>
         {showFlatListBT && (
           <FlatList
             data={blDevices}
@@ -544,7 +554,8 @@ function App(): JSX.Element {
           <FlatList
             data={USBdevices}
             renderItem={renderItemUSB}
-            keyExtractor={(item) => item.name}
+            keyExtractor={(item) => item.id}
+            extraData={currUSBPrinter}
           />
         )}
       </View>
