@@ -24,6 +24,7 @@ import {
   getListofServiceNames,
   getPairedDevices,
   openDrawer,
+  openDrawerUSB,
   printBLCut,
   printBLFeed,
   printImageByBluetooth,
@@ -305,6 +306,25 @@ function App(): JSX.Element {
             onPress={async () => {
               const drawer = await openDrawer(ipAddress, port);
               console.log(drawer);
+            }}
+          />
+          <Button
+            title="Open Drawer USB"
+            onPress={async () => {
+              try {
+                if (!currUSBPrinter) {
+                  console.log('No USB printer selected');
+                  return;
+                }
+                console.log('Opening drawer via USB...');
+                const result = await openDrawerUSB(
+                  currUSBPrinter.productId,
+                  currUSBPrinter.vendorId
+                );
+                console.log('Open Drawer USB result:', result);
+              } catch (error) {
+                console.error('Error opening drawer via USB:', error);
+              }
             }}
           />
           <Button
