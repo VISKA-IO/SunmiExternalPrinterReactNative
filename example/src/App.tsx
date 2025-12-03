@@ -350,7 +350,7 @@ function App(): JSX.Element {
 
               console.log('This is results USB', results);
               setListofUSBDevices(results);
-              false;
+              setShowFlatListBT(false);
               setShowFlatListNetwork(false);
               setShowFlatListUSB(true);
               setListofDevices([]);
