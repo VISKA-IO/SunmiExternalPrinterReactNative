@@ -311,7 +311,11 @@ function App(): JSX.Element {
             title="startUSBDiscovery"
             onPress={async () => {
               console.log('In granted');
-              const results: usbPrinterDevice[] = await searchUSBDevices();
+              const results: usbPrinterDevice[] =
+                await searchUSBDevices().catch((error) => {
+                  console.error('Error searching USB devices:', error);
+                  return [];
+                });
 
               results.push({
                 id: 'check',
