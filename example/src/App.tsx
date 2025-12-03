@@ -12,7 +12,6 @@ import {
   StatusBar,
   useColorScheme,
   TouchableOpacity,
-  FlatList,
   PermissionsAndroid,
 } from 'react-native';
 import { Colors, Header } from 'react-native/Libraries/NewAppScreen';
@@ -66,59 +65,6 @@ function App(): JSX.Element {
   const [showFlatListNetwork, setShowFlatListNetwork] = useState<boolean>(true);
   const [showFlatListBT, setShowFlatListBT] = useState<boolean>(false);
   const [showFlatListUSB, setShowFlatListUSB] = useState<boolean>(false);
-
-  const renderItem2 = ({ item }: { item: printerDevice }) => {
-    const backgroundColor =
-      item.name ===
-      (currPrinter === null ? ' ' : (currPrinter!!.name as string))
-        ? '#00008B'
-        : 'blue';
-    return (
-      <Item2
-        item={item}
-        onPress={async () => {
-          setCurrPrinter(item);
-        }}
-        backgroundColor={backgroundColor}
-        textColor={'white'}
-      />
-    );
-  };
-  const renderItem = ({ item }: { item: ItemData }) => {
-    const backgroundColor =
-      item.printerIPAddress === ipAddress ? '#00008B' : 'blue';
-    return (
-      <Item
-        item={item}
-        onPress={async () => {
-          setIpAddress(item.printerIPAddress);
-          setPort(item.printerPort);
-          setPrinterName(item.printerName);
-          setListofDevices([]);
-        }}
-        backgroundColor={backgroundColor}
-        textColor={'white'}
-      />
-    );
-  };
-
-  const renderItemUSB = ({ item }: { item: usbPrinterDevice }) => {
-    const backgroundColor =
-      item.name ===
-      (currUSBPrinter === null ? ' ' : (currUSBPrinter!!.name as string))
-        ? '#00008B'
-        : 'blue';
-    return (
-      <UsbItem
-        item={item}
-        onPress={async () => {
-          setCurrUsbPrinter(item);
-        }}
-        backgroundColor={backgroundColor}
-        textColor={'white'}
-      />
-    );
-  };
 
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
@@ -337,17 +283,6 @@ function App(): JSX.Element {
                   return [];
                 });
 
-              results.push({
-                id: 'check',
-                name: 'check',
-                productName: 'check',
-                manufacturerName: 'check',
-                // serialNumber: string;
-                vendorId: 'check',
-                version: 'check',
-                productId: 'check',
-              });
-
               console.log('This is results USB', results);
               setListofUSBDevices(results);
               setShowFlatListBT(false);
@@ -521,44 +456,121 @@ function App(): JSX.Element {
             Current USB:{currUSBPrinter == null ? ' ' : currUSBPrinter.id}{' '}
             {currUSBPrinter == null ? ' ' : currUSBPrinter?.name}
           </Text>
+          <View
+            style={{
+              marginTop: 20,
+              backgroundColor: '#f0f0f0',
+              borderRadius: 8,
+              marginHorizontal: 10,
+              marginBottom: 20,
+            }}
+          >
+            <Text
+              style={{
+                textAlign: 'center',
+                padding: 10,
+                fontWeight: 'bold',
+                fontSize: 16,
+              }}
+            >
+              {showFlatListUSB
+                ? 'USB Devices'
+                : showFlatListBT
+                ? 'Bluetooth Devices'
+                : 'Network Devices'}
+              {showFlatListUSB && ` (${USBdevices.length})`}
+              {showFlatListBT && ` (${blDevices.length})`}
+              {showFlatListNetwork && ` (${devices.length})`}
+            </Text>
+            {showFlatListBT &&
+              blDevices.map((item) => (
+                <TouchableOpacity
+                  key={item.address}
+                  onPress={() => setCurrPrinter(item)}
+                  style={[
+                    styles.item,
+                    {
+                      backgroundColor:
+                        currPrinter?.address === item.address
+                          ? '#00008B'
+                          : 'blue',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    {item.name}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    {item.address}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            {showFlatListNetwork &&
+              devices.map((item) => (
+                <TouchableOpacity
+                  key={item.printerIPAddress}
+                  onPress={() => {
+                    setIpAddress(item.printerIPAddress);
+                    setPort(item.printerPort);
+                    setPrinterName(item.printerName);
+                  }}
+                  style={[
+                    styles.item,
+                    {
+                      backgroundColor:
+                        ipAddress === item.printerIPAddress
+                          ? '#00008B'
+                          : 'blue',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    {item.printerIPAddress}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    {item.printerName}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    {item.printerPort}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            {showFlatListUSB &&
+              USBdevices.map((item) => (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => setCurrUsbPrinter(item)}
+                  style={[
+                    styles.item,
+                    {
+                      backgroundColor:
+                        currUSBPrinter?.id === item.id ? '#00008B' : 'blue',
+                    },
+                  ]}
+                >
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    ID: {item.id}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    Name: {item.name}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    Manufacturer: {item.manufacturerName}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    VendorID: {item.vendorId}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    ProductId: {item.productId}
+                  </Text>
+                  <Text style={[styles.title, { color: 'white' }]}>
+                    ProductName: {item.productName}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+          </View>
         </View>
       </ScrollView>
-      <View style={{ height: 250, backgroundColor: '#f0f0f0' }}>
-        <Text style={{ textAlign: 'center', padding: 5, fontWeight: 'bold' }}>
-          {showFlatListUSB
-            ? 'USB Devices'
-            : showFlatListBT
-            ? 'Bluetooth Devices'
-            : 'Network Devices'}
-          {showFlatListUSB && ` (${USBdevices.length})`}
-          {showFlatListBT && ` (${blDevices.length})`}
-          {showFlatListNetwork && ` (${devices.length})`}
-        </Text>
-        {showFlatListBT && (
-          <FlatList
-            data={blDevices}
-            renderItem={renderItem2}
-            keyExtractor={(item) => item.address}
-            extraData={currPrinter}
-          />
-        )}
-        {showFlatListNetwork && (
-          <FlatList
-            data={devices}
-            renderItem={renderItem}
-            keyExtractor={(item) => item.printerIPAddress}
-            extraData={ipAddress}
-          />
-        )}
-        {showFlatListUSB && (
-          <FlatList
-            data={USBdevices}
-            renderItem={renderItemUSB}
-            keyExtractor={(item) => item.id}
-            extraData={currUSBPrinter}
-          />
-        )}
-      </View>
     </SafeAreaView>
   );
 }
